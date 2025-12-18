@@ -154,6 +154,52 @@ export const eventRegistration = pgTable(
   ],
 );
 
+// ==================== Reference/Lookup Tables ====================
+
+// School - MLH verified schools list
+export const school = pgTable("school", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  name: text("name").notNull().unique(),
+  country: text("country").notNull(),
+  isVerified: boolean("is_verified")
+    .$defaultFn(() => true)
+    .notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .$defaultFn(() => new Date())
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .$defaultFn(() => new Date())
+    .$onUpdate(() => new Date())
+    .notNull(),
+});
+
+// Country - ISO 3166 standard country codes
+export const country = pgTable("country", {
+  code: text("code").primaryKey(), // ISO 3166 code (e.g., "US")
+  name: text("name").notNull().unique(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .$defaultFn(() => new Date())
+    .notNull(),
+});
+
+// Race/Ethnicity - Lookup table for demographic options
+export const raceEthnicity = pgTable("race_ethnicity", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  name: text("name").notNull().unique(),
+});
+
+// Dietary Restriction - Lookup table for dietary options
+export const dietaryRestriction = pgTable("dietary_restriction", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  name: text("name").notNull().unique(),
+});
+
 // ==================== Relations ====================
 
 export const userRelations = relations(user, ({ many, one }) => ({

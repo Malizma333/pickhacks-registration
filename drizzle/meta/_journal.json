@@ -8,6 +8,13 @@
       "when": 1766033229203,
       "tag": "0000_stormy_triton",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1766033739115,
+      "tag": "0001_green_molten_man",
+      "breakpoints": true
     }
   ]
 }
