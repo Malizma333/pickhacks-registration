@@ -15,6 +15,13 @@
       "when": 1766033739115,
       "tag": "0001_green_molten_man",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1766034018724,
+      "tag": "0002_tidy_jackal",
+      "breakpoints": true
     }
   ]
 }

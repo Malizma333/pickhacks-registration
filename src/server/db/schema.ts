@@ -200,6 +200,73 @@ export const dietaryRestriction = pgTable("dietary_restriction", {
   name: text("name").notNull().unique(),
 });
 
+// ==================== Event-Specific Registration Data ====================
+
+// Event Registration Education - Educational information for a specific event
+export const eventRegistrationEducation = pgTable("event_registration_education", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  eventRegistrationId: text("event_registration_id")
+    .notNull()
+    .unique()
+    .references(() => eventRegistration.id, { onDelete: "cascade" }),
+  schoolId: text("school_id")
+    .notNull()
+    .references(() => school.id),
+  levelOfStudy: text("level_of_study").notNull(),
+  major: text("major"),
+  graduationYear: integer("graduation_year"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .$defaultFn(() => new Date())
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .$defaultFn(() => new Date())
+    .$onUpdate(() => new Date())
+    .notNull(),
+});
+
+// Event Registration Demographics - Optional demographic information for a specific event
+export const eventRegistrationDemographics = pgTable("event_registration_demographics", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  eventRegistrationId: text("event_registration_id")
+    .notNull()
+    .unique()
+    .references(() => eventRegistration.id, { onDelete: "cascade" }),
+  countryOfResidence: text("country_of_residence").references(() => country.code),
+  isUnderrepresented: text("is_underrepresented"), // "yes", "no", "unsure", "prefer_not_to_answer"
+  gender: text("gender"),
+  genderSelfDescribe: text("gender_self_describe"),
+  pronouns: text("pronouns"),
+  pronounsOther: text("pronouns_other"),
+  sexualOrientation: text("sexual_orientation"),
+  sexualOrientationOther: text("sexual_orientation_other"),
+  highestEducation: text("highest_education"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .$defaultFn(() => new Date())
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .$defaultFn(() => new Date())
+    .$onUpdate(() => new Date())
+    .notNull(),
+});
+
+// Event Registration Race/Ethnicity - Many-to-many junction table
+export const eventRegistrationRaceEthnicity = pgTable("event_registration_race_ethnicity", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  eventRegistrationId: text("event_registration_id")
+    .notNull()
+    .references(() => eventRegistration.id, { onDelete: "cascade" }),
+  raceEthnicityId: text("race_ethnicity_id")
+    .notNull()
+    .references(() => raceEthnicity.id),
+  otherDescription: text("other_description"), // For "other" selection
+});
+
 // ==================== Relations ====================
 
 export const userRelations = relations(user, ({ many, one }) => ({
@@ -236,7 +303,7 @@ export const hackerProfileRelations = relations(
 
 export const eventRegistrationRelations = relations(
   eventRegistration,
-  ({ one }) => ({
+  ({ one, many }) => ({
     event: one(event, {
       fields: [eventRegistration.eventId],
       references: [event.id],
@@ -244,6 +311,57 @@ export const eventRegistrationRelations = relations(
     hackerProfile: one(hackerProfile, {
       fields: [eventRegistration.hackerProfileId],
       references: [hackerProfile.id],
+    }),
+    education: one(eventRegistrationEducation, {
+      fields: [eventRegistration.id],
+      references: [eventRegistrationEducation.eventRegistrationId],
+    }),
+    demographics: one(eventRegistrationDemographics, {
+      fields: [eventRegistration.id],
+      references: [eventRegistrationDemographics.eventRegistrationId],
+    }),
+    raceEthnicities: many(eventRegistrationRaceEthnicity),
+  }),
+);
+
+export const eventRegistrationEducationRelations = relations(
+  eventRegistrationEducation,
+  ({ one }) => ({
+    eventRegistration: one(eventRegistration, {
+      fields: [eventRegistrationEducation.eventRegistrationId],
+      references: [eventRegistration.id],
+    }),
+    school: one(school, {
+      fields: [eventRegistrationEducation.schoolId],
+      references: [school.id],
+    }),
+  }),
+);
+
+export const eventRegistrationDemographicsRelations = relations(
+  eventRegistrationDemographics,
+  ({ one }) => ({
+    eventRegistration: one(eventRegistration, {
+      fields: [eventRegistrationDemographics.eventRegistrationId],
+      references: [eventRegistration.id],
+    }),
+    country: one(country, {
+      fields: [eventRegistrationDemographics.countryOfResidence],
+      references: [country.code],
+    }),
+  }),
+);
+
+export const eventRegistrationRaceEthnicityRelations = relations(
+  eventRegistrationRaceEthnicity,
+  ({ one }) => ({
+    eventRegistration: one(eventRegistration, {
+      fields: [eventRegistrationRaceEthnicity.eventRegistrationId],
+      references: [eventRegistration.id],
+    }),
+    raceEthnicity: one(raceEthnicity, {
+      fields: [eventRegistrationRaceEthnicity.raceEthnicityId],
+      references: [raceEthnicity.id],
     }),
   }),
 );
