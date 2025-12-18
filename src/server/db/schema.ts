@@ -267,6 +267,72 @@ export const eventRegistrationRaceEthnicity = pgTable("event_registration_race_e
   otherDescription: text("other_description"), // For "other" selection
 });
 
+// Event Registration Dietary Restrictions - Many-to-many junction table
+export const eventRegistrationDietaryRestrictions = pgTable("event_registration_dietary_restrictions", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  eventRegistrationId: text("event_registration_id")
+    .notNull()
+    .references(() => eventRegistration.id, { onDelete: "cascade" }),
+  dietaryRestrictionId: text("dietary_restriction_id")
+    .notNull()
+    .references(() => dietaryRestriction.id),
+  allergyDetails: text("allergy_details"), // Specific allergy information
+});
+
+// Event Registration Shipping - Shipping address for a specific event
+export const eventRegistrationShipping = pgTable("event_registration_shipping", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  eventRegistrationId: text("event_registration_id")
+    .notNull()
+    .unique()
+    .references(() => eventRegistration.id, { onDelete: "cascade" }),
+  addressLine1: text("address_line_1").notNull(),
+  addressLine2: text("address_line_2"),
+  city: text("city").notNull(),
+  state: text("state").notNull(),
+  country: text("country")
+    .notNull()
+    .references(() => country.code),
+  postalCode: text("postal_code").notNull(),
+  tshirtSize: text("tshirt_size"), // US/UK sizing
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .$defaultFn(() => new Date())
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .$defaultFn(() => new Date())
+    .$onUpdate(() => new Date())
+    .notNull(),
+});
+
+// Event Registration MLH Agreement - MLH checkbox agreements
+export const eventRegistrationMlhAgreement = pgTable("event_registration_mlh_agreement", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  eventRegistrationId: text("event_registration_id")
+    .notNull()
+    .unique()
+    .references(() => eventRegistration.id, { onDelete: "cascade" }),
+  agreedToCodeOfConduct: boolean("agreed_to_code_of_conduct")
+    .$defaultFn(() => false)
+    .notNull(),
+  agreedToMlhSharing: boolean("agreed_to_mlh_sharing")
+    .$defaultFn(() => false)
+    .notNull(),
+  agreedToMlhEmails: boolean("agreed_to_mlh_emails")
+    .$defaultFn(() => false)
+    .notNull(),
+  agreedAt: timestamp("agreed_at", { withTimezone: true }).notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .$defaultFn(() => new Date())
+    .$onUpdate(() => new Date())
+    .notNull(),
+});
+
 // ==================== Relations ====================
 
 export const userRelations = relations(user, ({ many, one }) => ({
@@ -320,7 +386,16 @@ export const eventRegistrationRelations = relations(
       fields: [eventRegistration.id],
       references: [eventRegistrationDemographics.eventRegistrationId],
     }),
+    shipping: one(eventRegistrationShipping, {
+      fields: [eventRegistration.id],
+      references: [eventRegistrationShipping.eventRegistrationId],
+    }),
+    mlhAgreement: one(eventRegistrationMlhAgreement, {
+      fields: [eventRegistration.id],
+      references: [eventRegistrationMlhAgreement.eventRegistrationId],
+    }),
     raceEthnicities: many(eventRegistrationRaceEthnicity),
+    dietaryRestrictions: many(eventRegistrationDietaryRestrictions),
   }),
 );
 
@@ -362,6 +437,44 @@ export const eventRegistrationRaceEthnicityRelations = relations(
     raceEthnicity: one(raceEthnicity, {
       fields: [eventRegistrationRaceEthnicity.raceEthnicityId],
       references: [raceEthnicity.id],
+    }),
+  }),
+);
+
+export const eventRegistrationDietaryRestrictionsRelations = relations(
+  eventRegistrationDietaryRestrictions,
+  ({ one }) => ({
+    eventRegistration: one(eventRegistration, {
+      fields: [eventRegistrationDietaryRestrictions.eventRegistrationId],
+      references: [eventRegistration.id],
+    }),
+    dietaryRestriction: one(dietaryRestriction, {
+      fields: [eventRegistrationDietaryRestrictions.dietaryRestrictionId],
+      references: [dietaryRestriction.id],
+    }),
+  }),
+);
+
+export const eventRegistrationShippingRelations = relations(
+  eventRegistrationShipping,
+  ({ one }) => ({
+    eventRegistration: one(eventRegistration, {
+      fields: [eventRegistrationShipping.eventRegistrationId],
+      references: [eventRegistration.id],
+    }),
+    country: one(country, {
+      fields: [eventRegistrationShipping.country],
+      references: [country.code],
+    }),
+  }),
+);
+
+export const eventRegistrationMlhAgreementRelations = relations(
+  eventRegistrationMlhAgreement,
+  ({ one }) => ({
+    eventRegistration: one(eventRegistration, {
+      fields: [eventRegistrationMlhAgreement.eventRegistrationId],
+      references: [eventRegistration.id],
     }),
   }),
 );
