@@ -10,19 +10,19 @@ interface ProfileStepProps {
 
 export function ProfileStep({ data, onChange }: ProfileStepProps) {
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-[#074c72] mb-2">
+        <h2 className="text-2xl font-bold text-gray-900 mb-2 tracking-tight">
           Personal Information
         </h2>
-        <p className="text-gray-600 text-sm">
+        <p className="text-gray-600">
           Let's start with some basic information about you.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
             First Name *
           </label>
           <FormInput
@@ -38,7 +38,7 @@ export function ProfileStep({ data, onChange }: ProfileStepProps) {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
             Last Name *
           </label>
           <FormInput
@@ -55,7 +55,7 @@ export function ProfileStep({ data, onChange }: ProfileStepProps) {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-sm font-semibold text-gray-700 mb-2">
           Phone Number *
         </label>
         <FormInput
@@ -71,7 +71,7 @@ export function ProfileStep({ data, onChange }: ProfileStepProps) {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-sm font-semibold text-gray-700 mb-2">
           Age *
         </label>
         <FormInput
@@ -86,13 +86,13 @@ export function ProfileStep({ data, onChange }: ProfileStepProps) {
           min={13}
           max={120}
         />
-        <p className="mt-1 text-xs text-gray-500">
+        <p className="mt-2 text-sm text-gray-500">
           You must be at least 13 years old to participate.
         </p>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-sm font-semibold text-gray-700 mb-2">
           LinkedIn Profile (Optional)
         </label>
         <FormInput

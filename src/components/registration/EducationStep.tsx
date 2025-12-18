@@ -13,16 +13,16 @@ interface EducationStepProps {
 
 export function EducationStep({ data, onChange, schools }: EducationStepProps) {
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-[#074c72] mb-2">Education</h2>
-        <p className="text-gray-600 text-sm">
+        <h2 className="text-2xl font-bold text-gray-900 mb-2 tracking-tight">Education</h2>
+        <p className="text-gray-600">
           Tell us about your educational background.
         </p>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-sm font-semibold text-gray-700 mb-2">
           School *
         </label>
         <Select
@@ -36,7 +36,7 @@ export function EducationStep({ data, onChange, schools }: EducationStepProps) {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-sm font-semibold text-gray-700 mb-2">
           Level of Study *
         </label>
         <Select
@@ -50,7 +50,7 @@ export function EducationStep({ data, onChange, schools }: EducationStepProps) {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-sm font-semibold text-gray-700 mb-2">
           Major (Optional)
         </label>
         <FormInput
@@ -63,7 +63,7 @@ export function EducationStep({ data, onChange, schools }: EducationStepProps) {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-sm font-semibold text-gray-700 mb-2">
           Expected Graduation Year (Optional)
         </label>
         <FormInput

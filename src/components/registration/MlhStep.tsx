@@ -10,18 +10,18 @@ interface MlhStepProps {
 
 export function MlhStep({ data, onChange }: MlhStepProps) {
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-[#074c72] mb-2">
+        <h2 className="text-2xl font-bold text-gray-900 mb-2 tracking-tight">
           MLH Agreements
         </h2>
-        <p className="text-gray-600 text-sm">
+        <p className="text-gray-600">
           Please review and accept the following agreements to complete your
           registration.
         </p>
       </div>
 
-      <div className="space-y-4 bg-[#e8f4e5] p-6 rounded-lg">
+      <div className="space-y-5 bg-[#e8f4e5] p-8 rounded-xl border border-[#44ab48]/20">
         <Checkbox
           name="agreedToCodeOfConduct"
           checked={data.agreedToCodeOfConduct ?? false}
@@ -103,7 +103,7 @@ export function MlhStep({ data, onChange }: MlhStepProps) {
         />
       </div>
 
-      <p className="text-xs text-gray-500">
+      <p className="text-sm text-gray-500">
         * Required fields
       </p>
     </div>

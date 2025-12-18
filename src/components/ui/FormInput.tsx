@@ -14,7 +14,7 @@ export function FormInput({
   type,
   name,
   placeholder,
-  bgColor = "bg-white",
+  bgColor = "bg-gray-50",
   value,
   onChange,
   required = false,
@@ -31,7 +31,7 @@ export function FormInput({
       required={required}
       min={min}
       max={max}
-      className={`w-full rounded-lg border border-gray-300 ${bgColor} px-4 py-3 text-gray-900 placeholder-gray-500 focus:border-[#44ab48] focus:outline-none focus:ring-2 focus:ring-[#44ab48]/20`}
+      className={`w-full rounded-lg border border-gray-200 ${bgColor} px-4 py-3.5 text-base text-gray-900 placeholder-gray-400 transition-all duration-200 focus:border-[#44ab48] focus:outline-none focus:ring-4 focus:ring-[#44ab48]/10 focus:bg-white hover:border-gray-300`}
     />
   );
 }

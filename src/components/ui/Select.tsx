@@ -28,7 +28,7 @@ export function Select({
       value={value}
       onChange={(e) => onChange(e.target.value)}
       required={required}
-      className={`w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 transition focus:border-[#44ab48] focus:outline-none focus:ring-2 focus:ring-[#44ab48]/20 ${className}`}
+      className={`w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-3.5 text-base text-gray-900 transition-all duration-200 focus:border-[#44ab48] focus:outline-none focus:ring-4 focus:ring-[#44ab48]/10 focus:bg-white hover:border-gray-300 ${className}`}
     >
       <option value="" disabled>
         {placeholder}

@@ -17,18 +17,18 @@ export function ShippingStep({
   countries,
 }: ShippingStepProps) {
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-[#074c72] mb-2">
+        <h2 className="text-2xl font-bold text-gray-900 mb-2 tracking-tight">
           Shipping Information
         </h2>
-        <p className="text-gray-600 text-sm">
+        <p className="text-gray-600">
           Where should we send your swag?
         </p>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-sm font-semibold text-gray-700 mb-2">
           Address Line 1 *
         </label>
         <FormInput
@@ -44,7 +44,7 @@ export function ShippingStep({
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-sm font-semibold text-gray-700 mb-2">
           Address Line 2 (Optional)
         </label>
         <FormInput
@@ -58,9 +58,9 @@ export function ShippingStep({
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
             City *
           </label>
           <FormInput
@@ -74,7 +74,7 @@ export function ShippingStep({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
             State/Province *
           </label>
           <FormInput
@@ -88,9 +88,9 @@ export function ShippingStep({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
             Country *
           </label>
           <Select
@@ -104,7 +104,7 @@ export function ShippingStep({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
             Postal Code *
           </label>
           <FormInput
@@ -121,7 +121,7 @@ export function ShippingStep({
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-sm font-semibold text-gray-700 mb-2">
           T-Shirt Size (Optional)
         </label>
         <Select
