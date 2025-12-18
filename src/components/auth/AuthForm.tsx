@@ -59,7 +59,9 @@ export function AuthForm() {
 
         if (result.error) {
           setError(result.error.message ?? "An error occurred during sign in");
+          setLoading(false);
         } else {
+          // Immediate redirect - middleware will handle auth check
           router.push("/");
         }
       } else {
@@ -74,11 +76,11 @@ export function AuthForm() {
         } else {
           setSuccess("Please check your email to verify your account");
         }
+        setLoading(false);
       }
     } catch (err) {
       setError("An unexpected error occurred");
       console.error(err);
-    } finally {
       setLoading(false);
     }
   };

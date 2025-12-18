@@ -14,6 +14,14 @@ export const auth = betterAuth({
       verification: schema.verification,
     },
   }),
+  session: {
+    expiresIn: 60 * 60 * 24 * 7, // 7 days
+    updateAge: 60 * 60 * 24, // 1 day - update session every day instead of every request
+    cookieCache: {
+      enabled: true,
+      maxAge: 60 * 5, // 5 minutes - cache session in cookie
+    },
+  },
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: true,
