@@ -194,6 +194,7 @@ export async function fetchEventRegistrations(eventId?: string) {
         education: { with: { school: true } },
         shipping: true,
         mlhAgreement: true,
+        dietaryRestrictions: { with: { dietaryRestriction: true } },
       },
       orderBy: [desc(eventRegistration.createdAt)],
     });

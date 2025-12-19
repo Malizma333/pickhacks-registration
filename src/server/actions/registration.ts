@@ -7,6 +7,7 @@ import {
   eventRegistrationEducation,
   eventRegistrationShipping,
   eventRegistrationMlhAgreement,
+  eventRegistrationDietaryRestrictions,
   event as eventTable
 } from "~/server/db/schema";
 import { eq, and } from "drizzle-orm";
@@ -41,6 +42,10 @@ interface RegistrationData {
   agreedToCodeOfConduct: boolean;
   agreedToMlhSharing: boolean;
   agreedToMlhEmails: boolean;
+
+  // Dietary
+  dietaryRestrictionIds?: string[];
+  allergyDetails?: string;
 }
 
 export async function submitRegistration(data: RegistrationData) {
@@ -168,6 +173,26 @@ export async function submitRegistration(data: RegistrationData) {
       updatedAt: new Date(),
     });
 
+    // Insert dietary restrictions
+    if (data.dietaryRestrictionIds && data.dietaryRestrictionIds.length > 0) {
+      await db.insert(eventRegistrationDietaryRestrictions).values(
+        data.dietaryRestrictionIds.map((restrictionId) => ({
+          id: nanoid(),
+          eventRegistrationId: registrationId,
+          dietaryRestrictionId: restrictionId,
+          allergyDetails: data.allergyDetails,
+        }))
+      );
+    } else if (data.allergyDetails) {
+      // If only allergy details are provided without selecting any restrictions
+      await db.insert(eventRegistrationDietaryRestrictions).values({
+        id: nanoid(),
+        eventRegistrationId: registrationId,
+        dietaryRestrictionId: "other",
+        allergyDetails: data.allergyDetails,
+      });
+    }
+
     return { success: true, qrCode, registrationId };
   } catch (error) {
     console.error("Registration error:", error);
@@ -215,6 +240,7 @@ export async function getRegistrationStatus() {
         education: true,
         shipping: true,
         mlhAgreement: true,
+        dietaryRestrictions: true,
       },
     });
 
@@ -236,6 +262,7 @@ export async function getRegistrationStatus() {
         education: registration.education,
         shipping: registration.shipping,
         mlhAgreement: registration.mlhAgreement,
+        dietaryRestrictions: registration.dietaryRestrictions,
       },
     };
   } catch (error) {

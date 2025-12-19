@@ -17,6 +17,11 @@ interface Education {
   levelOfStudy?: string;
 }
 
+interface DietaryRestrictionEntry {
+  dietaryRestriction: { name: string };
+  allergyDetails?: string | null;
+}
+
 interface Registration {
   id: string;
   qrCode: string;
@@ -25,6 +30,7 @@ interface Registration {
   createdAt: Date;
   hackerProfile: HackerProfile;
   education?: Education;
+  dietaryRestrictions?: DietaryRestrictionEntry[];
 }
 
 interface EventData {
@@ -73,7 +79,7 @@ export default function RegistrationsPage() {
   });
 
   const handleExportCSV = () => {
-    const csvHeaders = ["First Name", "Last Name", "Email", "Phone", "Age", "School", "Level of Study", "QR Code", "Registration Date"];
+    const csvHeaders = ["First Name", "Last Name", "Email", "Phone", "Age", "School", "Level of Study", "Dietary Restrictions", "QR Code", "Registration Date"];
     const csvRows = filteredRegistrations.map((registration) => [
       registration.hackerProfile.firstName,
       registration.hackerProfile.lastName,
@@ -82,6 +88,9 @@ export default function RegistrationsPage() {
       registration.ageAtEvent,
       registration.education?.school?.name ?? "",
       registration.education?.levelOfStudy ?? "",
+      registration.dietaryRestrictions && registration.dietaryRestrictions.length > 0
+        ? registration.dietaryRestrictions.map((d) => d.dietaryRestriction.name).join("; ")
+        : "None",
       registration.qrCode,
       new Date(registration.createdAt).toLocaleDateString(),
     ]);
@@ -167,6 +176,9 @@ export default function RegistrationsPage() {
                   Level
                 </th>
                 <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
+                  Dietary
+                </th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
                   QR Code
                 </th>
                 <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
@@ -178,7 +190,7 @@ export default function RegistrationsPage() {
               {filteredRegistrations.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={7}
+                    colSpan={8}
                     className="px-6 py-12 text-center text-gray-500"
                   >
                     {searchTerm
@@ -216,6 +228,13 @@ export default function RegistrationsPage() {
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-700">
                       {registration.education?.levelOfStudy ?? "N/A"}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-700">
+                      {registration.dietaryRestrictions && registration.dietaryRestrictions.length > 0
+                        ? registration.dietaryRestrictions
+                            .map((d) => d.dietaryRestriction.name)
+                            .join(", ")
+                        : "None"}
                     </td>
                     <td className="px-6 py-4">
                       <code className="rounded bg-gray-100 px-2 py-1 text-xs font-mono text-gray-800">

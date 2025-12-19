@@ -34,6 +34,7 @@ export function EducationStep({ data, onChange, schools, disabled = false }: Edu
           placeholder="Select your school"
           required
           disabled={disabled}
+          searchable
         />
       </div>
 

@@ -25,3 +25,15 @@ export async function getCountries() {
     return [];
   }
 }
+
+export async function getDietaryRestrictions() {
+  try {
+    const restrictions = await db.query.dietaryRestriction.findMany({
+      orderBy: (restrictions, { asc }) => [asc(restrictions.name)],
+    });
+    return restrictions;
+  } catch (error) {
+    console.error("Get dietary restrictions error:", error);
+    return [];
+  }
+}

@@ -107,6 +107,7 @@ export function ShippingStep({
             placeholder="Select country"
             required
             disabled={disabled}
+            searchable
           />
         </div>
 
