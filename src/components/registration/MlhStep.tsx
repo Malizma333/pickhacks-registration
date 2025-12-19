@@ -6,9 +6,10 @@ import type { MlhFormData } from "~/utils/form-validation";
 interface MlhStepProps {
   data: Partial<MlhFormData>;
   onChange: (data: Partial<MlhFormData>) => void;
+  disabled?: boolean;
 }
 
-export function MlhStep({ data, onChange }: MlhStepProps) {
+export function MlhStep({ data, onChange, disabled = false }: MlhStepProps) {
   return (
     <div className="space-y-6">
       <div>
@@ -29,6 +30,7 @@ export function MlhStep({ data, onChange }: MlhStepProps) {
             onChange({ ...data, agreedToCodeOfConduct: checked })
           }
           required
+          disabled={disabled}
           label={
             <span>
               I have read and agree to the{" "}
@@ -52,6 +54,7 @@ export function MlhStep({ data, onChange }: MlhStepProps) {
             onChange({ ...data, agreedToMlhSharing: checked })
           }
           required
+          disabled={disabled}
           label={
             <span>
               I authorize you to share my application/registration information
@@ -94,6 +97,7 @@ export function MlhStep({ data, onChange }: MlhStepProps) {
           onChange={(checked) =>
             onChange({ ...data, agreedToMlhEmails: checked })
           }
+          disabled={disabled}
           label={
             <span>
               I authorize MLH to send me occasional emails about relevant

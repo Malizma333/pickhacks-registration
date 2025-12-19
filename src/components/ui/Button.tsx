@@ -7,6 +7,7 @@ interface ButtonProps {
   fullWidth?: boolean;
   disabled?: boolean;
   className?: string;
+  onClick?: () => void;
 }
 
 export function Button({
@@ -16,8 +17,9 @@ export function Button({
   fullWidth = false,
   disabled = false,
   className = "",
+  onClick,
 }: ButtonProps) {
-  const baseStyles = "rounded-lg py-3 text-lg font-semibold transition-all duration-200";
+  const baseStyles = "rounded-lg px-6 py-3 text-lg font-semibold transition-all duration-200";
   const variantStyles =
     variant === "primary"
       ? "bg-[#44ab48] text-white hover:bg-[#3a9c3e] hover:shadow-lg active:scale-95 disabled:bg-gray-400 disabled:cursor-not-allowed disabled:hover:shadow-none"
@@ -28,6 +30,7 @@ export function Button({
     <button
       type={type}
       disabled={disabled}
+      onClick={onClick}
       className={`${baseStyles} ${variantStyles} ${widthStyles} ${className}`}
     >
       {children}

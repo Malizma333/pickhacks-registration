@@ -3,28 +3,33 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { ProtectedRoute } from "~/components/auth/ProtectedRoute";
+import { getRegistrationStatus } from "~/server/actions/registration";
 
 export default function DashboardPage() {
   const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // TODO: Fetch actual QR code from database
-    // For now, generate a placeholder QR code using a free API
-    const generateQRCode = async () => {
+    const fetchQRCode = async () => {
       try {
-        // This is a placeholder - we'll replace with actual QR code from DB
-        const mockData = "PICKHACKS2025-USER-12345";
-        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(mockData)}`;
-        setQrCodeUrl(qrUrl);
+        const status = await getRegistrationStatus();
+        if (status.registered && status.qrCode) {
+          // Generate QR code URL from the QR code string stored in database
+          const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(status.qrCode)}`;
+          setQrCodeUrl(qrUrl);
+        } else {
+          setError("No registration found. Please complete the registration form.");
+        }
       } catch (error) {
-        console.error("Error generating QR code:", error);
+        console.error("Error fetching QR code:", error);
+        setError("Failed to load QR code.");
       } finally {
         setLoading(false);
       }
     };
 
-    void generateQRCode();
+    void fetchQRCode();
   }, []);
 
   return (
@@ -74,6 +79,10 @@ export default function DashboardPage() {
             {loading ? (
               <div className="flex h-75 w-75 items-center justify-center rounded-xl bg-gray-50">
                 <div className="text-gray-400">Loading...</div>
+              </div>
+            ) : error ? (
+              <div className="rounded-lg bg-red-50 p-4 text-center text-red-800">
+                {error}
               </div>
             ) : (
               <>

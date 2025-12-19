@@ -9,9 +9,10 @@ interface EducationStepProps {
   data: Partial<EducationFormData>;
   onChange: (data: Partial<EducationFormData>) => void;
   schools: Array<{ id: string; name: string }>;
+  disabled?: boolean;
 }
 
-export function EducationStep({ data, onChange, schools }: EducationStepProps) {
+export function EducationStep({ data, onChange, schools, disabled = false }: EducationStepProps) {
   return (
     <div className="space-y-6">
       <div>
@@ -32,6 +33,7 @@ export function EducationStep({ data, onChange, schools }: EducationStepProps) {
           options={schools.map((s) => ({ value: s.id, label: s.name }))}
           placeholder="Select your school"
           required
+          disabled={disabled}
         />
       </div>
 
@@ -46,6 +48,7 @@ export function EducationStep({ data, onChange, schools }: EducationStepProps) {
           options={LEVEL_OF_STUDY_OPTIONS}
           placeholder="Select your level of study"
           required
+          disabled={disabled}
         />
       </div>
 
@@ -59,6 +62,7 @@ export function EducationStep({ data, onChange, schools }: EducationStepProps) {
           value={data.major ?? ""}
           onChange={(e) => onChange({ ...data, major: e.target.value })}
           placeholder="Computer Science"
+          disabled={disabled}
         />
       </div>
 
@@ -79,6 +83,7 @@ export function EducationStep({ data, onChange, schools }: EducationStepProps) {
           placeholder="2025"
           min={2020}
           max={2035}
+          disabled={disabled}
         />
       </div>
     </div>

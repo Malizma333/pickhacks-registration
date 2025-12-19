@@ -1,29 +1,70 @@
-# Create T3 App
+# PickHacks Registration System
 
-This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
+Event registration platform for PickHacks hackathon built with the T3 Stack.
 
-## What's next? How do I make an app with this?
+## Tech Stack
 
-We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
+- [Next.js 15](https://nextjs.org) - React framework
+- [Better-Auth](https://better-auth.com) - Authentication
+- [Drizzle ORM](https://orm.drizzle.team) - Database ORM
+- [PostgreSQL](https://neon.tech) - Database (Neon)
+- [Tailwind CSS](https://tailwindcss.com) - Styling
 
-If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+## Getting Started
 
-- [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
-- [Drizzle](https://orm.drizzle.team)
-- [Tailwind CSS](https://tailwindcss.com)
-- [tRPC](https://trpc.io)
+1. Install dependencies:
+```bash
+pnpm install
+```
 
-## Learn More
+2. Set up environment variables:
+```bash
+cp .env.example .env
+```
 
-To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
+3. Run the development server:
+```bash
+pnpm dev
+```
 
-- [Documentation](https://create.t3.gg/)
-- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these awesome tutorials
+4. Open [http://localhost:3000](http://localhost:3000)
 
-You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
+## Admin Access
 
-## How do I deploy this?
+The admin panel is available at `/admin`. To grant admin access:
 
-Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
+1. Go to your [Neon Console](https://console.neon.tech/)
+2. Open the SQL Editor
+3. Run this query (replace with your email):
+```sql
+UPDATE "user" SET "is_admin" = true WHERE "email" = 'your-email@example.com';
+```
+
+4. Access the admin panel at `http://localhost:3000/admin/login`
+
+## Features
+
+### User Registration
+- Multi-step form (Profile, Education, Shipping, MLH Agreements)
+- Email verification required
+- Unique QR code generation per user
+- Read-only view after submission
+
+### Admin Panel (`/admin`)
+- Create and manage events
+- View all registrations
+- Export registrations to CSV
+- Search and filter registrations
+
+## Database Commands
+
+```bash
+# Generate migration
+pnpm db:generate
+
+# Push schema changes
+pnpm db:push
+
+# Open Drizzle Studio
+pnpm db:studio
+```

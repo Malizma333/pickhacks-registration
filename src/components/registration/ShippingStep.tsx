@@ -9,12 +9,14 @@ interface ShippingStepProps {
   data: Partial<ShippingFormData>;
   onChange: (data: Partial<ShippingFormData>) => void;
   countries: Array<{ code: string; name: string }>;
+  disabled?: boolean;
 }
 
 export function ShippingStep({
   data,
   onChange,
   countries,
+  disabled = false,
 }: ShippingStepProps) {
   return (
     <div className="space-y-6">
@@ -40,6 +42,7 @@ export function ShippingStep({
           }
           placeholder="123 Main St"
           required
+          disabled={disabled}
         />
       </div>
 
@@ -55,6 +58,7 @@ export function ShippingStep({
             onChange({ ...data, addressLine2: e.target.value })
           }
           placeholder="Apt 4B"
+          disabled={disabled}
         />
       </div>
 
@@ -70,6 +74,7 @@ export function ShippingStep({
             onChange={(e) => onChange({ ...data, city: e.target.value })}
             placeholder="San Francisco"
             required
+            disabled={disabled}
           />
         </div>
 
@@ -84,6 +89,7 @@ export function ShippingStep({
             onChange={(e) => onChange({ ...data, state: e.target.value })}
             placeholder="CA"
             required
+            disabled={disabled}
           />
         </div>
       </div>
@@ -100,6 +106,7 @@ export function ShippingStep({
             options={countries.map((c) => ({ value: c.code, label: c.name }))}
             placeholder="Select country"
             required
+            disabled={disabled}
           />
         </div>
 
@@ -116,6 +123,7 @@ export function ShippingStep({
             }
             placeholder="94102"
             required
+            disabled={disabled}
           />
         </div>
       </div>
@@ -130,6 +138,7 @@ export function ShippingStep({
           onChange={(value) => onChange({ ...data, tshirtSize: value })}
           options={TSHIRT_SIZE_OPTIONS}
           placeholder="Select size"
+          disabled={disabled}
         />
       </div>
     </div>

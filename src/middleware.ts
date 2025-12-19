@@ -12,7 +12,15 @@ export async function middleware(request: NextRequest) {
   const sessionToken = request.cookies.get("better-auth.session_token");
   const isAuthenticated = !!sessionToken?.value;
 
-  // Redirect authenticated users away from auth pages
+  // Admin routes - redirect to /admin/login if not authenticated
+  if (pathname.startsWith("/admin") && !pathname.startsWith("/admin/login")) {
+    if (!isAuthenticated) {
+      return NextResponse.redirect(new URL("/admin/login", request.url));
+    }
+  }
+
+  // Regular domain authentication checks
+  // Redirect authenticated users away from auth pages (but not admin login)
   if (authRoutes.includes(pathname) && isAuthenticated) {
     return NextResponse.redirect(new URL("/", request.url));
   }

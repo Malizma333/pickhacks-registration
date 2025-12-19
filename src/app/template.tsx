@@ -6,10 +6,12 @@ import { DashboardLayout } from "~/components/layout/DashboardLayout";
 export default function Template({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
-  // Don't show sidebar on login page
-  const isLoginPage = pathname === "/login";
+  const excludeLayout =
+    pathname === "/login" ||
+    pathname.startsWith("/admin") ||
+    pathname === "/verify-email";
 
-  if (isLoginPage) {
+  if (excludeLayout) {
     return <>{children}</>;
   }
 

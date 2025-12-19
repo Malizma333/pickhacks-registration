@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "~/lib/auth-client";
 
@@ -9,27 +9,31 @@ interface ProtectedRouteProps {
   requireEmailVerification?: boolean;
 }
 
-export function ProtectedRoute({ children, requireEmailVerification = true }: ProtectedRouteProps) {
+export function ProtectedRoute({
+  children,
+  requireEmailVerification = true,
+}: ProtectedRouteProps) {
   const router = useRouter();
   const { data: session, isPending } = useSession();
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
     if (isPending) return;
 
-    // Additional check for email verification
     if (requireEmailVerification && session && !session.user.emailVerified) {
       router.replace("/verify-email");
+      return;
     }
+
+    setIsReady(true);
   }, [session, isPending, router, requireEmailVerification]);
 
-  // Minimal loading - middleware already handled auth check
-  if (isPending) {
-    return null; // Don't show spinner since middleware already checked
-  }
-
-  // Email verification check
-  if (requireEmailVerification && session && !session.user.emailVerified) {
-    return null;
+  if (!isReady) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-[#44ab48] border-r-transparent" />
+      </div>
+    );
   }
 
   return <>{children}</>;

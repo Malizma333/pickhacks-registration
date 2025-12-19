@@ -6,9 +6,10 @@ import type { ProfileFormData } from "~/utils/form-validation";
 interface ProfileStepProps {
   data: Partial<ProfileFormData>;
   onChange: (data: Partial<ProfileFormData>) => void;
+  disabled?: boolean;
 }
 
-export function ProfileStep({ data, onChange }: ProfileStepProps) {
+export function ProfileStep({ data, onChange, disabled = false }: ProfileStepProps) {
   return (
     <div className="space-y-6">
       <div>
@@ -34,6 +35,7 @@ export function ProfileStep({ data, onChange }: ProfileStepProps) {
             }
             placeholder="John"
             required
+            disabled={disabled}
           />
         </div>
 
@@ -50,6 +52,7 @@ export function ProfileStep({ data, onChange }: ProfileStepProps) {
             }
             placeholder="Doe"
             required
+            disabled={disabled}
           />
         </div>
       </div>
@@ -67,6 +70,7 @@ export function ProfileStep({ data, onChange }: ProfileStepProps) {
           }
           placeholder="+1 (555) 123-4567"
           required
+          disabled={disabled}
         />
       </div>
 
@@ -85,6 +89,7 @@ export function ProfileStep({ data, onChange }: ProfileStepProps) {
           required
           min={13}
           max={120}
+          disabled={disabled}
         />
         <p className="mt-2 text-sm text-gray-500">
           You must be at least 13 years old to participate.
@@ -103,6 +108,7 @@ export function ProfileStep({ data, onChange }: ProfileStepProps) {
             onChange({ ...data, linkedinUrl: e.target.value })
           }
           placeholder="https://linkedin.com/in/yourprofile"
+          disabled={disabled}
         />
       </div>
     </div>
