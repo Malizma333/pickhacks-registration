@@ -86,6 +86,8 @@ export async function createEvent(data: CreateEventData) {
       return { error: "Cannot create event while an active event exists" };
     }
 
+    // Deactivate all existing events before creating new one
+    // eslint-disable-next-line drizzle/enforce-update-with-where
     await db.update(eventTable).set({ isActive: false });
 
     const [newEvent] = await db
@@ -151,19 +153,6 @@ export async function fetchActiveEvent() {
   } catch (error) {
     console.error("Fetch active event error:", error);
     return null;
-  }
-}
-
-export async function fetchAllEvents() {
-  try {
-    const events = await db.query.event.findMany({
-      orderBy: [desc(eventTable.year)],
-    });
-
-    return events;
-  } catch (error) {
-    console.error("Fetch all events error:", error);
-    return [];
   }
 }
 

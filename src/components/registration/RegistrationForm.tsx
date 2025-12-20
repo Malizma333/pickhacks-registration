@@ -54,26 +54,26 @@ export function RegistrationForm({
           lastName: profile.lastName,
           phoneNumber: profile.phoneNumber,
           ageAtEvent: profile.ageAtEvent,
-          linkedinUrl: profile.linkedinUrl || undefined,
+          linkedinUrl: profile.linkedinUrl ?? undefined,
         });
         setEducationData({
-          schoolId: education?.schoolId || "",
-          levelOfStudy: education?.levelOfStudy || "",
-          major: education?.major || undefined,
+          schoolId: education?.schoolId ?? "",
+          levelOfStudy: education?.levelOfStudy ?? "",
+          major: education?.major ?? undefined,
           graduationYear: education?.graduationYear ?? undefined,
         });
         setShippingData({
-          addressLine1: shipping?.addressLine1 || "",
-          addressLine2: shipping?.addressLine2 || undefined,
-          city: shipping?.city || "",
-          state: shipping?.state || "",
-          country: shipping?.country || "",
-          postalCode: shipping?.postalCode || "",
-          tshirtSize: shipping?.tshirtSize || undefined,
+          addressLine1: shipping?.addressLine1 ?? "",
+          addressLine2: shipping?.addressLine2 ?? undefined,
+          city: shipping?.city ?? "",
+          state: shipping?.state ?? "",
+          country: shipping?.country ?? "",
+          postalCode: shipping?.postalCode ?? "",
+          tshirtSize: shipping?.tshirtSize ?? undefined,
         });
         setDietaryData({
-          dietaryRestrictionIds: dietaryRestrictionsData?.map((d: { dietaryRestrictionId: string }) => d.dietaryRestrictionId) || [],
-          allergyDetails: dietaryRestrictionsData?.[0]?.allergyDetails || undefined,
+          dietaryRestrictionIds: dietaryRestrictionsData?.map((d: { dietaryRestrictionId: string }) => d.dietaryRestrictionId) ?? [],
+          allergyDetails: dietaryRestrictionsData?.[0]?.allergyDetails ?? undefined,
         });
         setMlhData({
           agreedToCodeOfConduct: mlhAgreement?.agreedToCodeOfConduct || false,
@@ -118,7 +118,7 @@ export function RegistrationForm({
         // MLH
         agreedToCodeOfConduct: mlhData.agreedToCodeOfConduct!,
         agreedToMlhSharing: mlhData.agreedToMlhSharing!,
-        agreedToMlhEmails: mlhData.agreedToMlhEmails || false,
+        agreedToMlhEmails: mlhData.agreedToMlhEmails ?? false,
       });
 
       if (result.error) {

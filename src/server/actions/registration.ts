@@ -83,7 +83,7 @@ export async function submitRegistration(data: RegistrationData) {
         ),
       });
 
-      if (existingRegistration && existingRegistration.isComplete) {
+      if (existingRegistration?.isComplete) {
         return { error: "You have already registered for this event" };
       }
     }
@@ -244,7 +244,7 @@ export async function getRegistrationStatus() {
       },
     });
 
-    if (!registration || !registration.isComplete) {
+    if (!registration?.isComplete) {
       return { registered: false };
     }
 

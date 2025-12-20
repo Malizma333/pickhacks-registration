@@ -1,7 +1,7 @@
 export default function VerifyEmailPage() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-[#e8f4e5] p-4">
-      <div className="w-full max-w-md space-y-8 bg-white rounded-lg shadow-lg p-8">
+      <div className="w-full max-w-md space-y-8 rounded-lg bg-white p-8 shadow-lg">
         <div className="text-center">
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-yellow-100">
             <svg
@@ -22,14 +22,14 @@ export default function VerifyEmailPage() {
             Verify Your Email
           </h2>
           <p className="mt-2 text-sm text-gray-600">
-            We've sent a verification link to your email address. Please check your
-            inbox and click the link to verify your account.
+            We&apos;ve sent a verification link to your email address. Please
+            check your inbox and click the link to verify your account.
           </p>
         </div>
 
         <div className="mt-6 rounded-md bg-blue-50 p-4">
           <div className="flex">
-            <div className="flex-shrink-0">
+            <div className="shrink-0">
               <svg
                 className="h-5 w-5 text-blue-400"
                 fill="currentColor"
@@ -44,7 +44,7 @@ export default function VerifyEmailPage() {
             </div>
             <div className="ml-3">
               <h3 className="text-sm font-medium text-blue-800">
-                Didn't receive the email?
+                Didn&apos;t receive the email?
               </h3>
               <div className="mt-2 text-sm text-blue-700">
                 <p>
