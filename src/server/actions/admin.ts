@@ -3,29 +3,12 @@
 import { db } from "~/server/db";
 import { event as eventTable, eventRegistration } from "~/server/db/schema";
 import { eq, and, desc } from "drizzle-orm";
-import { auth } from "~/server/auth";
-import { headers } from "next/headers";
 import { nanoid } from "nanoid";
-
-async function verifyAdmin() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-
-  if (!session) {
-    return { error: "Not authenticated" };
-  }
-
-  const user = await db.query.user.findFirst({
-    where: (users, { eq }) => eq(users.id, session.user.id),
-  });
-
-  if (!user?.isAdmin) {
-    return { error: "Unauthorized - Admin access required" };
-  }
-
-  return { session, user };
-}
+import {
+  verifyAdmin,
+  getActiveEvent,
+  verifyAdminWithActiveEvent,
+} from "./shared";
 
 export async function checkIsAdmin() {
   try {
@@ -48,9 +31,7 @@ interface CreateEventData {
 
 export async function canCreateEvent() {
   try {
-    const activeEvent = await db.query.event.findFirst({
-      where: eq(eventTable.isActive, true),
-    });
+    const activeEvent = await getActiveEvent();
 
     if (!activeEvent) {
       return { canCreate: true, reason: null };
@@ -145,10 +126,7 @@ export async function deleteEvent(eventId: string) {
 
 export async function fetchActiveEvent() {
   try {
-    const activeEvent = await db.query.event.findFirst({
-      where: eq(eventTable.isActive, true),
-    });
-
+    const activeEvent = await getActiveEvent();
     return activeEvent ?? null;
   } catch (error) {
     console.error("Fetch active event error:", error);
@@ -158,23 +136,12 @@ export async function fetchActiveEvent() {
 
 export async function fetchEventRegistrations(eventId?: string) {
   try {
-    const authResult = await verifyAdmin();
-    if (authResult.error) {
-      return authResult;
+    const result = await verifyAdminWithActiveEvent();
+    if (result.error) {
+      return { error: result.error };
     }
 
-    let targetEventId = eventId;
-    if (!targetEventId) {
-      const activeEvent = await db.query.event.findFirst({
-        where: eq(eventTable.isActive, true),
-      });
-
-      if (!activeEvent) {
-        return { error: "No active event found" };
-      }
-
-      targetEventId = activeEvent.id;
-    }
+    const targetEventId = eventId ?? result.activeEvent!.id;
 
     const registrations = await db.query.eventRegistration.findMany({
       where: eq(eventRegistration.eventId, targetEventId),
@@ -197,23 +164,12 @@ export async function fetchEventRegistrations(eventId?: string) {
 
 export async function fetchRegistrationStats(eventId?: string) {
   try {
-    const authResult = await verifyAdmin();
-    if (authResult.error) {
-      return authResult;
+    const result = await verifyAdminWithActiveEvent();
+    if (result.error) {
+      return { error: result.error };
     }
 
-    let targetEventId = eventId;
-    if (!targetEventId) {
-      const activeEvent = await db.query.event.findFirst({
-        where: eq(eventTable.isActive, true),
-      });
-
-      if (!activeEvent) {
-        return { error: "No active event found" };
-      }
-
-      targetEventId = activeEvent.id;
-    }
+    const targetEventId = eventId ?? result.activeEvent!.id;
 
     const registrations = await db.query.eventRegistration.findMany({
       where: and(

@@ -3,35 +3,9 @@
 import { useState, useEffect } from "react";
 import { fetchEventRegistrations, fetchActiveEvent } from "~/server/actions/admin";
 import { COLORS } from "~/constants";
-
-// Types for registration data
-interface HackerProfile {
-  firstName: string;
-  lastName: string;
-  email?: string;
-  phoneNumber: string;
-}
-
-interface Education {
-  school?: { name: string };
-  levelOfStudy?: string;
-}
-
-interface DietaryRestrictionEntry {
-  dietaryRestriction: { name: string };
-  allergyDetails?: string | null;
-}
-
-interface Registration {
-  id: string;
-  qrCode: string;
-  ageAtEvent: number;
-  isComplete: boolean;
-  createdAt: Date;
-  hackerProfile: HackerProfile;
-  education?: Education;
-  dietaryRestrictions?: DietaryRestrictionEntry[];
-}
+import { LoadingState } from "~/components/ui/LoadingSpinner";
+import { AlertMessage } from "~/components/ui/AlertMessage";
+import type { Registration } from "~/types/admin";
 
 interface EventData {
   id: string;
@@ -105,22 +79,11 @@ export default function RegistrationsPage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex h-64 items-center justify-center">
-        <div className="text-center">
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-[#44ab48] border-r-transparent"></div>
-          <p className="mt-4 text-gray-600">Loading registrations...</p>
-        </div>
-      </div>
-    );
+    return <LoadingState message="Loading registrations..." />;
   }
 
   if (errorMessage) {
-    return (
-      <div className="rounded-lg bg-red-50 p-6 text-center text-red-800">
-        {errorMessage}
-      </div>
-    );
+    return <AlertMessage type="error" message={errorMessage} />;
   }
 
   return (

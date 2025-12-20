@@ -1,64 +1,23 @@
 "use server";
 
 import { db } from "~/server/db";
-import {
-  eventStation,
-  checkIn,
-  eventRegistration,
-  event as eventTable,
-} from "~/server/db/schema";
+import { eventStation, checkIn, eventRegistration } from "~/server/db/schema";
 import { eq, and, desc, sql } from "drizzle-orm";
-import { auth } from "~/server/auth";
-import { headers } from "next/headers";
 import { nanoid } from "nanoid";
 import { DEFAULT_STATIONS } from "~/constants";
-
-// ============ Helper: Verify Admin ============
-
-async function verifyAdmin() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-
-  if (!session) {
-    return { error: "Not authenticated" };
-  }
-
-  const user = await db.query.user.findFirst({
-    where: (users, { eq }) => eq(users.id, session.user.id),
-  });
-
-  if (!user?.isAdmin) {
-    return { error: "Unauthorized - Admin access required" };
-  }
-
-  return { session, user };
-}
-
-// ============ Helper: Get Active Event ============
-
-async function getActiveEvent() {
-  return db.query.event.findFirst({
-    where: eq(eventTable.isActive, true),
-  });
-}
+import { verifyAdmin, verifyAdminWithActiveEvent } from "./shared";
 
 // ============ STATION ACTIONS ============
 
 export async function fetchEventStations() {
   try {
-    const authResult = await verifyAdmin();
-    if (authResult.error) {
-      return { error: authResult.error };
-    }
-
-    const activeEvent = await getActiveEvent();
-    if (!activeEvent) {
-      return { error: "No active event found" };
+    const result = await verifyAdminWithActiveEvent();
+    if (result.error) {
+      return { error: result.error };
     }
 
     const stations = await db.query.eventStation.findMany({
-      where: eq(eventStation.eventId, activeEvent.id),
+      where: eq(eventStation.eventId, result.activeEvent!.id),
       orderBy: [desc(eventStation.createdAt)],
     });
 
@@ -75,21 +34,16 @@ export async function createStation(data: {
   maxVisitsPerHacker?: number | null;
 }) {
   try {
-    const authResult = await verifyAdmin();
-    if (authResult.error) {
-      return { error: authResult.error };
-    }
-
-    const activeEvent = await getActiveEvent();
-    if (!activeEvent) {
-      return { error: "No active event found" };
+    const result = await verifyAdminWithActiveEvent();
+    if (result.error) {
+      return { error: result.error };
     }
 
     const [station] = await db
       .insert(eventStation)
       .values({
         id: nanoid(),
-        eventId: activeEvent.id,
+        eventId: result.activeEvent!.id,
         name: data.name,
         stationType: data.stationType,
         maxVisitsPerHacker: data.maxVisitsPerHacker ?? null,
@@ -138,7 +92,6 @@ export async function deleteStation(stationId: string) {
       return { error: authResult.error };
     }
 
-    // Check if any check-ins exist
     const existingCheckIns = await db.query.checkIn.findMany({
       where: eq(checkIn.eventStationId, stationId),
       limit: 1,
@@ -159,19 +112,13 @@ export async function deleteStation(stationId: string) {
 
 export async function seedDefaultStations() {
   try {
-    const authResult = await verifyAdmin();
-    if (authResult.error) {
-      return { error: authResult.error };
+    const result = await verifyAdminWithActiveEvent();
+    if (result.error) {
+      return { error: result.error };
     }
 
-    const activeEvent = await getActiveEvent();
-    if (!activeEvent) {
-      return { error: "No active event found" };
-    }
-
-    // Check if stations already exist
     const existingStations = await db.query.eventStation.findMany({
-      where: eq(eventStation.eventId, activeEvent.id),
+      where: eq(eventStation.eventId, result.activeEvent!.id),
       limit: 1,
     });
 
@@ -181,7 +128,7 @@ export async function seedDefaultStations() {
 
     const stationsToInsert = DEFAULT_STATIONS.map((station) => ({
       id: nanoid(),
-      eventId: activeEvent.id,
+      eventId: result.activeEvent!.id,
       name: station.name,
       stationType: station.stationType,
       maxVisitsPerHacker: station.maxVisitsPerHacker,
@@ -201,20 +148,15 @@ export async function seedDefaultStations() {
 
 export async function lookupRegistrationByQRCode(qrCode: string) {
   try {
-    const authResult = await verifyAdmin();
-    if (authResult.error) {
-      return { error: authResult.error };
-    }
-
-    const activeEvent = await getActiveEvent();
-    if (!activeEvent) {
-      return { error: "No active event found" };
+    const result = await verifyAdminWithActiveEvent();
+    if (result.error) {
+      return { error: result.error };
     }
 
     const registration = await db.query.eventRegistration.findFirst({
       where: and(
         eq(eventRegistration.qrCode, qrCode),
-        eq(eventRegistration.eventId, activeEvent.id)
+        eq(eventRegistration.eventId, result.activeEvent!.id)
       ),
       with: {
         hackerProfile: true,
@@ -277,7 +219,6 @@ export async function recordCheckIn(data: {
       return { error: authResult.error };
     }
 
-    // Check for existing check-in at this station
     const existingCheckIn = await db.query.checkIn.findFirst({
       where: and(
         eq(checkIn.eventRegistrationId, data.eventRegistrationId),
@@ -297,7 +238,6 @@ export async function recordCheckIn(data: {
       };
     }
 
-    // Get station to check max visits
     const station = await db.query.eventStation.findFirst({
       where: eq(eventStation.id, data.eventStationId),
     });
@@ -310,7 +250,6 @@ export async function recordCheckIn(data: {
       return { error: "Station is not active" };
     }
 
-    // Count existing check-ins for this person at this station
     if (station.maxVisitsPerHacker && !data.overrideDuplicate) {
       const checkInCount = await db
         .select({ count: sql<number>`count(*)` })
@@ -336,7 +275,6 @@ export async function recordCheckIn(data: {
       }
     }
 
-    // Record the check-in
     const [newCheckIn] = await db
       .insert(checkIn)
       .values({
@@ -357,18 +295,13 @@ export async function recordCheckIn(data: {
 
 export async function getStationStats() {
   try {
-    const authResult = await verifyAdmin();
-    if (authResult.error) {
-      return { error: authResult.error };
-    }
-
-    const activeEvent = await getActiveEvent();
-    if (!activeEvent) {
-      return { error: "No active event found" };
+    const result = await verifyAdminWithActiveEvent();
+    if (result.error) {
+      return { error: result.error };
     }
 
     const stations = await db.query.eventStation.findMany({
-      where: eq(eventStation.eventId, activeEvent.id),
+      where: eq(eventStation.eventId, result.activeEvent!.id),
       with: {
         checkIns: true,
       },

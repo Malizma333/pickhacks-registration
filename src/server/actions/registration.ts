@@ -8,12 +8,12 @@ import {
   eventRegistrationShipping,
   eventRegistrationMlhAgreement,
   eventRegistrationDietaryRestrictions,
-  event as eventTable
 } from "~/server/db/schema";
 import { eq, and } from "drizzle-orm";
 import { auth } from "~/server/auth";
 import { headers } from "next/headers";
 import { nanoid } from "nanoid";
+import { getActiveEvent } from "./shared";
 
 interface RegistrationData {
   // Profile
@@ -61,11 +61,7 @@ export async function submitRegistration(data: RegistrationData) {
 
     const userId = session.user.id;
 
-    // Get active event (PickHacks 2025)
-    const activeEvent = await db.query.event.findFirst({
-      where: eq(eventTable.isActive, true),
-    });
-
+    const activeEvent = await getActiveEvent();
     if (!activeEvent) {
       return { error: "No active event found" };
     }
@@ -212,11 +208,7 @@ export async function getRegistrationStatus() {
 
     const userId = session.user.id;
 
-    // Get active event
-    const activeEvent = await db.query.event.findFirst({
-      where: eq(eventTable.isActive, true),
-    });
-
+    const activeEvent = await getActiveEvent();
     if (!activeEvent) {
       return { registered: false };
     }

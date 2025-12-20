@@ -49,7 +49,7 @@ export function QRScanner({ onScan, onError, isActive }: QRScannerProps) {
         },
         () => {
           // Ignore decode errors (no QR code in frame)
-        }
+        },
       );
 
       setIsScanning(true);
@@ -57,7 +57,8 @@ export function QRScanner({ onScan, onError, isActive }: QRScannerProps) {
       setError(null);
     } catch (err) {
       console.error("Scanner start error:", err);
-      const errorMessage = err instanceof Error ? err.message : "Failed to start camera";
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to start camera";
 
       if (errorMessage.includes("Permission")) {
         setHasPermission(false);
@@ -105,7 +106,7 @@ export function QRScanner({ onScan, onError, isActive }: QRScannerProps) {
       <div
         id="qr-scanner-container"
         ref={containerRef}
-        className={`rounded-lg overflow-hidden bg-gray-900 ${
+        className={`overflow-hidden rounded-lg bg-gray-900 ${
           !isActive || error ? "hidden" : ""
         }`}
         style={{ minHeight: "300px" }}
@@ -113,9 +114,9 @@ export function QRScanner({ onScan, onError, isActive }: QRScannerProps) {
 
       {/* Inactive state */}
       {!isActive && !error && (
-        <div className="flex flex-col items-center justify-center h-[300px] bg-gray-100 rounded-lg border-2 border-dashed border-gray-300">
+        <div className="flex h-75 flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-100">
           <svg
-            className="w-16 h-16 text-gray-400 mb-4"
+            className="mb-4 h-16 w-16 text-gray-400"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -127,7 +128,7 @@ export function QRScanner({ onScan, onError, isActive }: QRScannerProps) {
               d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"
             />
           </svg>
-          <p className="text-gray-500 text-center">
+          <p className="text-center text-gray-500">
             Select a station to start scanning
           </p>
         </div>
@@ -135,9 +136,9 @@ export function QRScanner({ onScan, onError, isActive }: QRScannerProps) {
 
       {/* Permission denied state */}
       {hasPermission === false && (
-        <div className="flex flex-col items-center justify-center h-[300px] bg-red-50 rounded-lg border-2 border-red-200">
+        <div className="flex h-75 flex-col items-center justify-center rounded-lg border-2 border-red-200 bg-red-50">
           <svg
-            className="w-16 h-16 text-red-400 mb-4"
+            className="mb-4 h-16 w-16 text-red-400"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -149,20 +150,21 @@ export function QRScanner({ onScan, onError, isActive }: QRScannerProps) {
               d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"
             />
           </svg>
-          <p className="text-red-600 text-center font-medium mb-2">
+          <p className="mb-2 text-center font-medium text-red-600">
             Camera Access Denied
           </p>
-          <p className="text-red-500 text-sm text-center px-4">
-            Please allow camera access in your browser settings to scan QR codes.
+          <p className="px-4 text-center text-sm text-red-500">
+            Please allow camera access in your browser settings to scan QR
+            codes.
           </p>
         </div>
       )}
 
       {/* Error state */}
       {error && hasPermission !== false && (
-        <div className="flex flex-col items-center justify-center h-[300px] bg-yellow-50 rounded-lg border-2 border-yellow-200">
+        <div className="flex h-75 flex-col items-center justify-center rounded-lg border-2 border-yellow-200 bg-yellow-50">
           <svg
-            className="w-16 h-16 text-yellow-500 mb-4"
+            className="mb-4 h-16 w-16 text-yellow-500"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -174,16 +176,16 @@ export function QRScanner({ onScan, onError, isActive }: QRScannerProps) {
               d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
             />
           </svg>
-          <p className="text-yellow-700 text-center font-medium mb-2">
+          <p className="mb-2 text-center font-medium text-yellow-700">
             Scanner Error
           </p>
-          <p className="text-yellow-600 text-sm text-center px-4">{error}</p>
+          <p className="px-4 text-center text-sm text-yellow-600">{error}</p>
           <button
             onClick={() => {
               setError(null);
               void startScanner();
             }}
-            className="mt-4 px-4 py-2 text-sm font-medium text-yellow-700 bg-yellow-100 rounded-lg hover:bg-yellow-200 transition"
+            className="mt-4 rounded-lg bg-yellow-100 px-4 py-2 text-sm font-medium text-yellow-700 transition hover:bg-yellow-200"
           >
             Try Again
           </button>
@@ -192,8 +194,8 @@ export function QRScanner({ onScan, onError, isActive }: QRScannerProps) {
 
       {/* Scanning indicator */}
       {isScanning && !error && (
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-2 bg-black/70 text-white text-sm rounded-full flex items-center gap-2">
-          <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+        <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-2 rounded-full bg-black/70 px-4 py-2 text-sm text-white">
+          <span className="h-2 w-2 animate-pulse rounded-full bg-green-400" />
           Scanning...
         </div>
       )}

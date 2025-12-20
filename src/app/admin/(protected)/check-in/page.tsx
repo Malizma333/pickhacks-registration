@@ -8,41 +8,15 @@ import { HackerInfoCard } from "~/components/admin/HackerInfoCard";
 import { CheckInHistoryList } from "~/components/admin/CheckInHistoryList";
 import { DuplicateWarningModal } from "~/components/admin/DuplicateWarningModal";
 import { Button } from "~/components/ui/Button";
+import { LoadingState, LoadingSpinner } from "~/components/ui/LoadingSpinner";
+import { AlertMessage, SuccessBanner } from "~/components/ui/AlertMessage";
+import { Card } from "~/components/ui/Card";
 import {
   fetchEventStations,
   lookupRegistrationByQRCode,
   recordCheckIn,
 } from "~/server/actions/check-in";
-
-interface Station {
-  id: string;
-  name: string;
-  stationType: string;
-  isActive: boolean;
-  maxVisitsPerHacker: number | null;
-}
-
-interface HackerInfo {
-  id: string;
-  qrCode: string;
-  isComplete: boolean;
-  hackerProfile: {
-    firstName: string;
-    lastName: string;
-    phoneNumber: string;
-  };
-  dietaryRestrictions: {
-    name: string;
-    allergyDetails: string | null;
-  }[];
-  checkIns: {
-    id: string;
-    stationId: string;
-    stationName: string;
-    stationType: string;
-    checkedInAt: Date;
-  }[];
-}
+import type { Station, HackerInfo } from "~/types/admin";
 
 const STORAGE_KEY = "pickhacks-admin-selected-station";
 
@@ -183,14 +157,7 @@ export default function CheckInPage() {
   const isFoodStation = selectedStation?.stationType === "food";
 
   if (isLoadingStations) {
-    return (
-      <div className="flex h-64 items-center justify-center">
-        <div className="text-center">
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-[#44ab48] border-r-transparent"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
+    return <LoadingState message="Loading..." />;
   }
 
   return (
@@ -240,63 +207,19 @@ export default function CheckInPage() {
         {/* Right: Hacker Info */}
         <div className="space-y-4">
           {/* Success Message */}
-          {successMessage && (
-            <div className="rounded-xl border border-green-200 bg-green-50 p-6 text-center">
-              <svg
-                className="w-12 h-12 text-green-500 mx-auto mb-3"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              <p className="text-lg font-semibold text-green-800">
-                {successMessage}
-              </p>
-            </div>
-          )}
+          {successMessage && <SuccessBanner message={successMessage} />}
 
           {/* Error Message */}
           {error && !successMessage && (
-            <div className="rounded-xl border border-red-200 bg-red-50 p-4">
-              <div className="flex items-start gap-3">
-                <svg
-                  className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-                <div>
-                  <p className="text-sm font-medium text-red-800">{error}</p>
-                  <button
-                    onClick={() => setError(null)}
-                    className="text-xs text-red-600 underline hover:no-underline mt-1"
-                  >
-                    Dismiss
-                  </button>
-                </div>
-              </div>
-            </div>
+            <AlertMessage type="error" message={error} onDismiss={() => setError(null)} />
           )}
 
           {/* Loading State */}
           {isLookingUp && (
-            <div className="rounded-xl border border-gray-200 bg-white p-12 text-center">
-              <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-[#44ab48] border-r-transparent mb-4"></div>
+            <Card className="p-12 text-center">
+              <LoadingSpinner size="md" className="mb-4" />
               <p className="text-gray-600">Looking up registration...</p>
-            </div>
+            </Card>
           )}
 
           {/* Hacker Info Card */}
@@ -310,12 +233,12 @@ export default function CheckInPage() {
               />
 
               {/* Check-in History */}
-              <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+              <Card>
                 <CheckInHistoryList
                   checkIns={hackerInfo.checkIns}
                   currentStationId={selectedStationId ?? undefined}
                 />
-              </div>
+              </Card>
 
               {/* Check-in Button */}
               <Button
