@@ -3,6 +3,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { db } from "~/server/db";
 import * as schema from "~/server/db/schema";
 import { env } from "~/env";
+import { resend } from "~/lib/email-client";
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
@@ -41,15 +42,12 @@ Name: ${user.name}
 Verification URL: ${url}
 ========================================
       `);
-
-      // TODO: Implement actual email sending with Resend
-      // Example:
-      // await resend.emails.send({
-      //   from: 'PickHacks <noreply@pickhacks.com>',
-      //   to: user.email,
-      //   subject: 'Verify your PickHacks account',
-      //   html: `<p>Click <a href="${url}">here</a> to verify your email.</p>`,
-      // });
+      await resend.emails.send({
+        from: 'PickHacks <noreply@pickhacks.io>',
+        to: user.email,
+        subject: 'Verify your PickHacks account',
+        html: `<p>Click <a href="${url}">here</a> to verify your email.</p>`,
+      });
     },
   },
   secret: env.BETTER_AUTH_SECRET,
