@@ -64,7 +64,7 @@ export function AuthForm() {
             });
 
             if (result.error) {
-              setError("Email not verified, please contact pickhacks@mst.edu for assistance");
+              setError("Email not verified, please contact hello@pickhacks.io for assistance");
             } else {
               setError("Email not verified, a new verification email has been sent");
             }

@@ -26,6 +26,16 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: true,
+    sendResetPassword: async ({ user, token }) => {
+      const resetUrl = `${env.BETTER_AUTH_URL}/reset-password?token=${token}`;
+      console.info(`Password reset sent: ${user.email} ${user.name} ${resetUrl}`);
+      await resend.emails.send({
+        from: 'PickHacks <noreply@pickhacks.io>',
+        to: user.email,
+        subject: 'Reset password',
+        html: `<p>Click <a href="${resetUrl}">here</a> to reset your password.</p>`,
+      });
+    },
   },
   emailVerification: {
     sendOnSignUp: true,
@@ -33,14 +43,7 @@ export const auth = betterAuth({
     sendVerificationEmail: async ({ user, url }) => {
       // For now, we'll log the verification URL to console
       // In production, this will send an actual email using Resend or similar
-      console.info(`
-========================================
-Email Verification Required
-========================================
-User: ${user.email}
-Name: ${user.name}
-Verification URL: ${url}
-========================================
+      console.info(`Verification sent: ${user.email} ${user.name} ${url}
       `);
       await resend.emails.send({
         from: 'PickHacks <noreply@pickhacks.io>',
