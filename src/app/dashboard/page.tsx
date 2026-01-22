@@ -5,6 +5,76 @@ import Image from "next/image";
 import { ProtectedRoute } from "~/components/auth/ProtectedRoute";
 import { getRegistrationStatus } from "~/server/actions/registration";
 
+function ApplicationSubmitted() {
+  return (
+    <div className="mb-6 rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
+      <div className="flex items-center gap-4">
+        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#44ab48]">
+          <svg
+            className="h-6 w-6 text-white"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M5 13l4 4L19 7"
+            />
+          </svg>
+        </div>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Registration Submitted
+          </h1>
+          <p className="mt-1 text-gray-600">
+            Thank you for registering for PickHacks 2025! We&apos;ll email you
+            with updates and event details.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ApplicationInProgress() {
+  return (
+    <div className="mb-6 rounded-xl border border-yellow-400 bg-yellow-50 p-8 shadow-sm">
+      <div className="flex items-center gap-4">
+        {/* Icon */}
+        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-yellow-400">
+          <svg
+            className="h-6 w-6 text-white"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 8v4m0 4h.01M12 2a10 10 0 100 20 10 10 0 000-20z"
+            />
+          </svg>
+        </div>
+
+        {/* Text */}
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Registration Incomplete
+          </h1>
+          <p className="mt-1 text-gray-700">
+            Your registration for PickHacks 2025 is incomplete.
+            No spot is reserved until you submit your registration.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
 export default function DashboardPage() {
   const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
   const [loading, setLoading] = useState(true);
@@ -35,35 +105,8 @@ export default function DashboardPage() {
   return (
     <ProtectedRoute requireEmailVerification={true}>
       <div className="mx-auto max-w-5xl px-8 py-12">
-        {/* Success Message */}
-        <div className="mb-6 rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
-          <div className="flex items-center gap-4">
-            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#44ab48]">
-              <svg
-                className="h-6 w-6 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">
-                Application Submitted
-              </h1>
-              <p className="mt-1 text-gray-600">
-                Thank you for registering for PickHacks 2025! We&apos;ll email you
-                with updates and event details.
-              </p>
-            </div>
-          </div>
-        </div>
+        {/* Status */}
+        {error ? <ApplicationInProgress /> : <ApplicationSubmitted />}
 
         {/* QR Code Section */}
         <div className="rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
