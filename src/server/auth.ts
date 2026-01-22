@@ -33,7 +33,7 @@ export const auth = betterAuth({
     sendVerificationEmail: async ({ user, url }) => {
       // For now, we'll log the verification URL to console
       // In production, this will send an actual email using Resend or similar
-      console.log(`
+      console.info(`
 ========================================
 Email Verification Required
 ========================================
@@ -55,9 +55,11 @@ Verification URL: ${url}
   trustedOrigins: [
     "http://localhost:3000",
     ...(process.env.VERCEL_URL ? [`https://${process.env.VERCEL_URL}`] : [])
-  ]
+  ],
+  advanced: {
+    useSecureCookies: true,
+  }
 });
 
-console.log("Server secrets:", env);
 
 export type Session = typeof auth.$Infer.Session;

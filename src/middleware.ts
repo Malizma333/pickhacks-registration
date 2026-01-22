@@ -9,8 +9,11 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Get session cookie
-  const sessionToken = request.cookies.get("better-auth.session_token");
+  let sessionToken = request.cookies.get("better-auth.session_token");
+  sessionToken = sessionToken ?? request.cookies.get("__Secure-better-auth.session_token");
+  console.info("Session token", sessionToken);
   const isAuthenticated = !!sessionToken?.value;
+  console.info("Is authenticated", isAuthenticated);
 
   // Admin routes - redirect to /admin/login if not authenticated
   if (pathname.startsWith("/admin") && !pathname.startsWith("/admin/login")) {
