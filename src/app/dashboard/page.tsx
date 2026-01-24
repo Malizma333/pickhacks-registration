@@ -184,11 +184,11 @@ export default function DashboardPage() {
           <dl className="space-y-3">
             <div>
               <dt className="text-sm font-medium text-gray-500">Event</dt>
-              <dd className="text-base text-gray-900">PickHacks 2025</dd>
+              <dd className="text-base text-gray-900">PickHacks 2026</dd>
             </div>
             <div>
-              <dt className="text-sm font-medium text-gray-500">Date</dt>
-              <dd className="text-base text-gray-900">TBD</dd>
+              <dt className="text-sm font-medium text-gray-500">Dates</dt>
+              <dd className="text-base text-gray-900">2/27 - 3/1</dd>
             </div>
             <div>
               <dt className="text-sm font-medium text-gray-500">Location</dt>
