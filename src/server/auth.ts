@@ -30,7 +30,7 @@ export const auth = betterAuth({
       const resetUrl = `${env.BETTER_AUTH_URL}/reset-password?token=${token}`;
       console.info(`Password reset sent: ${user.email} ${user.name} ${resetUrl}`);
       await resend.emails.send({
-        from: 'PickHacks <pickhacks@mst.edu>',
+        from: 'PickHacks <mst@pickhacks.io>',
         to: user.email,
         subject: 'Reset password',
         html: `<p>Click <a href="${resetUrl}">here</a> to reset your password.</p>`,
@@ -46,7 +46,7 @@ export const auth = betterAuth({
       console.info(`Verification sent: ${user.email} ${user.name} ${url}
       `);
       await resend.emails.send({
-        from: 'PickHacks <pickhacks@mst.edu>',
+        from: 'PickHacks <mst@pickhacks.io>',
         to: user.email,
         subject: 'Verify your PickHacks account',
         html: `<p>Click <a href="${url}">here</a> to verify your email.</p>`,
