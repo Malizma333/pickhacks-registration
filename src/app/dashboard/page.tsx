@@ -30,7 +30,13 @@ function ApplicationSubmitted() {
           </h1>
           <p className="mt-1 text-gray-600">
             Thank you for registering for PickHacks 2026! We&apos;ll email you
-            with updates and event details.
+            with updates and event details. In the mean time be sure to join our{" "}
+            <a
+              target="_blank"
+              href="https://discord.gg/QpTFVRNFkD"
+              className="text-[#44ab48] hover:underline"
+            >discord server</a>
+            .
           </p>
         </div>
       </div>
@@ -206,6 +212,12 @@ export default function DashboardPage() {
                 >
                   pickhacks@mst.edu
                 </a>
+                {" "}or join our{" "}
+                <a
+                  target="_blank"
+                  href="https://discord.gg/QpTFVRNFkD"
+                  className="text-[#44ab48] hover:underline"
+                >discord server</a>
               </dd>
             </div>
           </dl>
