@@ -146,8 +146,11 @@ export async function fetchEventRegistrations(eventId?: string) {
     const registrations = await db.query.eventRegistration.findMany({
       where: eq(eventRegistration.eventId, targetEventId),
       with: {
-        hackerProfile: true,
+        hackerProfile: {
+          with: { user: true },
+        },
         education: { with: { school: true } },
+        demographics: true,
         shipping: true,
         mlhAgreement: true,
         dietaryRestrictions: { with: { dietaryRestriction: true } },
@@ -174,7 +177,7 @@ export async function fetchRegistrationStats(eventId?: string) {
     const registrations = await db.query.eventRegistration.findMany({
       where: and(
         eq(eventRegistration.eventId, targetEventId),
-        eq(eventRegistration.isComplete, true)
+        eq(eventRegistration.isComplete, true),
       ),
     });
 

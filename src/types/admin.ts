@@ -37,7 +37,7 @@ export interface HackerProfile {
   firstName: string;
   lastName: string;
   phoneNumber: string;
-  email?: string;
+  user?: { email: string };
 }
 
 export interface Education {
@@ -67,6 +67,10 @@ export interface HackerInfo {
   checkIns: CheckInRecord[];
 }
 
+export interface Demographics {
+  countryOfResidence?: string | null;
+}
+
 export interface Registration {
   id: string;
   qrCode: string;
@@ -75,7 +79,11 @@ export interface Registration {
   createdAt: Date;
   hackerProfile: HackerProfile;
   education?: Education;
-  dietaryRestrictions?: { dietaryRestriction: { name: string }; allergyDetails?: string | null }[];
+  demographics?: Demographics;
+  dietaryRestrictions?: {
+    dietaryRestriction: { name: string };
+    allergyDetails?: string | null;
+  }[];
 }
 
 // ============ Server Action Response Types ============
