@@ -47,7 +47,8 @@ export default function AdminPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [activeEvent, setActiveEvent] = useState<EventData | null>(null);
-  const [registrationStats, setRegistrationStats] = useState<RegistrationStats | null>(null);
+  const [registrationStats, setRegistrationStats] =
+    useState<RegistrationStats | null>(null);
   const [isCreateFormVisible, setIsCreateFormVisible] = useState(false);
   const [canCreateNewEvent, setCanCreateNewEvent] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(true);
@@ -112,7 +113,7 @@ export default function AdminPage() {
     if (!activeEvent) return;
 
     const isConfirmed = window.confirm(
-      `Are you sure you want to delete "${activeEvent.name}"? This action cannot be undone.`
+      `Are you sure you want to delete "${activeEvent.name}"? This action cannot be undone.`,
     );
 
     if (!isConfirmed) return;
@@ -136,7 +137,9 @@ export default function AdminPage() {
   if (isLoadingData) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <div className={`inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-[${COLORS.primary}] border-r-transparent`} />
+        <div
+          className={`inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-[${COLORS.primary}] border-r-transparent`}
+        />
       </div>
     );
   }
@@ -144,24 +147,26 @@ export default function AdminPage() {
   return (
     <div className="space-y-8">
       {errorMessage && (
-        <div className="rounded-lg bg-red-50 border border-red-200 p-4 text-red-800">
+        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-800">
           {errorMessage}
         </div>
       )}
 
       {successMessage && (
-        <div className="rounded-lg bg-green-50 border border-green-200 p-4 text-green-800">
+        <div className="rounded-lg border border-green-200 bg-green-50 p-4 text-green-800">
           {successMessage}
         </div>
       )}
 
       {activeEvent ? (
-        <div className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
-          <div className={`bg-linear-to-r from-[${COLORS.primary}] to-[${COLORS.primaryHover}] px-8 py-6`}>
+        <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+          <div
+            className={`bg-linear-to-r from-[${COLORS.primary}] to-[${COLORS.primaryHover}] px-8 py-6`}
+          >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-white/80">Active Event</p>
-                <h2 className="text-2xl font-bold text-white mt-1">
+                <p className="text-sm font-medium text-black">Active Event</p>
+                <h2 className="mt-1 text-2xl font-bold text-black">
                   {activeEvent.name}
                 </h2>
               </div>
@@ -174,9 +179,9 @@ export default function AdminPage() {
           </div>
 
           <div className="p-8">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
+            <div className="mb-8 grid grid-cols-2 gap-6 md:grid-cols-4">
               <div className="rounded-xl bg-gray-50 p-4">
-                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                <p className="text-xs font-medium tracking-wide text-gray-500 uppercase">
                   Start Date
                 </p>
                 <p className="mt-1 text-lg font-semibold text-gray-900">
@@ -184,7 +189,7 @@ export default function AdminPage() {
                 </p>
               </div>
               <div className="rounded-xl bg-gray-50 p-4">
-                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                <p className="text-xs font-medium tracking-wide text-gray-500 uppercase">
                   End Date
                 </p>
                 <p className="mt-1 text-lg font-semibold text-gray-900">
@@ -192,7 +197,7 @@ export default function AdminPage() {
                 </p>
               </div>
               <div className="rounded-xl bg-gray-50 p-4">
-                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                <p className="text-xs font-medium tracking-wide text-gray-500 uppercase">
                   Registration Opens
                 </p>
                 <p className="mt-1 text-lg font-semibold text-gray-900">
@@ -202,7 +207,7 @@ export default function AdminPage() {
                 </p>
               </div>
               <div className="rounded-xl bg-gray-50 p-4">
-                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                <p className="text-xs font-medium tracking-wide text-gray-500 uppercase">
                   Registration Closes
                 </p>
                 <p className="mt-1 text-lg font-semibold text-gray-900">
@@ -215,7 +220,7 @@ export default function AdminPage() {
 
             {registrationStats && (
               <div className="border-t border-gray-100 pt-8">
-                <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">
+                <h3 className="mb-4 text-sm font-semibold tracking-wide text-gray-900 uppercase">
                   Registration Statistics
                 </h3>
                 <div className="grid grid-cols-2 gap-6">
@@ -223,7 +228,9 @@ export default function AdminPage() {
                     <p className="text-sm font-medium text-[#2d7a32]">
                       Total Registrations
                     </p>
-                    <p className={`mt-2 text-4xl font-bold text-[${COLORS.primary}]`}>
+                    <p
+                      className={`mt-2 text-4xl font-bold text-[${COLORS.primary}]`}
+                    >
                       {registrationStats.totalRegistrations}
                     </p>
                   </div>
@@ -239,7 +246,7 @@ export default function AdminPage() {
               </div>
             )}
 
-            <div className="border-t border-gray-100 pt-8 mt-8 flex justify-between items-center">
+            <div className="mt-8 flex items-center justify-between border-t border-gray-100 pt-8">
               <p className="text-sm text-gray-500">
                 {canCreateNewEvent
                   ? "This event has ended. You can create a new event."
@@ -248,7 +255,7 @@ export default function AdminPage() {
               <button
                 onClick={handleDeleteEvent}
                 disabled={isDeleting}
-                className="rounded-lg border-2 border-red-300 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-50 transition-colors"
+                className="rounded-lg border-2 border-red-300 px-4 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 disabled:opacity-50"
               >
                 {isDeleting ? "Deleting..." : "Delete Event"}
               </button>
@@ -257,7 +264,7 @@ export default function AdminPage() {
         </div>
       ) : (
         <div className="rounded-2xl border-2 border-dashed border-gray-300 bg-gray-50 p-12 text-center">
-          <div className="mx-auto h-16 w-16 rounded-full bg-gray-200 flex items-center justify-center mb-4">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-200">
             <svg
               className="h-8 w-8 text-gray-400"
               fill="none"
@@ -272,7 +279,9 @@ export default function AdminPage() {
               />
             </svg>
           </div>
-          <h3 className="text-lg font-semibold text-gray-900">No Active Event</h3>
+          <h3 className="text-lg font-semibold text-gray-900">
+            No Active Event
+          </h3>
           <p className="mt-2 text-gray-600">
             Create an event to start accepting registrations.
           </p>
@@ -281,14 +290,17 @@ export default function AdminPage() {
 
       {canCreateNewEvent && !isCreateFormVisible && (
         <div className="flex justify-center">
-          <Button onClick={() => setIsCreateFormVisible(true)} variant="primary">
+          <Button
+            onClick={() => setIsCreateFormVisible(true)}
+            variant="primary"
+          >
             Create New Event
           </Button>
         </div>
       )}
 
       {isCreateFormVisible && (
-        <div className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+        <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
           <div className="border-b border-gray-200 bg-gray-50 px-8 py-4">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold text-gray-900">
@@ -315,10 +327,10 @@ export default function AdminPage() {
             </div>
           </div>
 
-          <form onSubmit={handleCreateEvent} className="p-8 space-y-6">
+          <form onSubmit={handleCreateEvent} className="space-y-6 p-8">
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="mb-2 block text-sm font-medium text-gray-700">
                   Event Name
                 </label>
                 <FormInput
@@ -334,7 +346,7 @@ export default function AdminPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="mb-2 block text-sm font-medium text-gray-700">
                   Year
                 </label>
                 <FormInput
@@ -344,7 +356,8 @@ export default function AdminPage() {
                   onChange={(e) =>
                     setEventFormData({
                       ...eventFormData,
-                      year: parseInt(e.target.value) || new Date().getFullYear(),
+                      year:
+                        parseInt(e.target.value) || new Date().getFullYear(),
                     })
                   }
                   required
@@ -354,7 +367,7 @@ export default function AdminPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="mb-2 block text-sm font-medium text-gray-700">
                   Start Date
                 </label>
                 <FormInput
@@ -362,14 +375,17 @@ export default function AdminPage() {
                   name="startDate"
                   value={eventFormData.startDate}
                   onChange={(e) =>
-                    setEventFormData({ ...eventFormData, startDate: e.target.value })
+                    setEventFormData({
+                      ...eventFormData,
+                      startDate: e.target.value,
+                    })
                   }
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="mb-2 block text-sm font-medium text-gray-700">
                   End Date
                 </label>
                 <FormInput
@@ -377,16 +393,19 @@ export default function AdminPage() {
                   name="endDate"
                   value={eventFormData.endDate}
                   onChange={(e) =>
-                    setEventFormData({ ...eventFormData, endDate: e.target.value })
+                    setEventFormData({
+                      ...eventFormData,
+                      endDate: e.target.value,
+                    })
                   }
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="mb-2 block text-sm font-medium text-gray-700">
                   Registration Opens
-                  <span className="text-gray-400 font-normal"> (optional)</span>
+                  <span className="font-normal text-gray-400"> (optional)</span>
                 </label>
                 <FormInput
                   type="datetime-local"
@@ -402,9 +421,9 @@ export default function AdminPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="mb-2 block text-sm font-medium text-gray-700">
                   Registration Closes
-                  <span className="text-gray-400 font-normal"> (optional)</span>
+                  <span className="font-normal text-gray-400"> (optional)</span>
                 </label>
                 <FormInput
                   type="datetime-local"
@@ -420,11 +439,11 @@ export default function AdminPage() {
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+            <div className="flex justify-end gap-3 border-t border-gray-100 pt-4">
               <button
                 type="button"
                 onClick={() => setIsCreateFormVisible(false)}
-                className="rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                className="rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
               >
                 Cancel
               </button>
