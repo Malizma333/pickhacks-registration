@@ -252,13 +252,15 @@ export default function AdminPage() {
                   ? "This event has ended. You can create a new event."
                   : "Only one active event is allowed at a time."}
               </p>
-              <button
-                onClick={handleDeleteEvent}
-                disabled={isDeleting}
-                className="rounded-lg border-2 border-red-300 px-4 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 disabled:opacity-50"
-              >
-                {isDeleting ? "Deleting..." : "Delete Event"}
-              </button>
+              {/*
+                <button
+                  onClick={handleDeleteEvent}
+                  disabled={isDeleting}
+                  className="rounded-lg border-2 border-red-300 px-4 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 disabled:opacity-50"
+                >
+                  {isDeleting ? "Deleting..." : "Delete Event"}
+                </button>{" "}
+              */}
             </div>
           </div>
         </div>
