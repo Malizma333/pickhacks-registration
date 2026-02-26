@@ -22,7 +22,7 @@ export function MlhStep({ data, onChange, disabled = false }: MlhStepProps) {
         </p>
       </div>
 
-      <div className="space-y-5 bg-[#e8f4e5] p-8 rounded-xl border border-[#44ab48]/20">
+      <div className="space-y-5 bg-[#e8f4e5] p-4 md:p-8 rounded-xl border border-[#44ab48]/20">
         <Checkbox
           name="agreedToCodeOfConduct"
           checked={data.agreedToCodeOfConduct ?? false}

@@ -32,7 +32,12 @@ const navigationLinks: SidebarLink[] = [
   },
 ];
 
-export function Sidebar() {
+interface SidebarProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
 
@@ -42,9 +47,19 @@ export function Sidebar() {
   };
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-64 bg-white border-r border-gray-200 flex flex-col">
+    <>
+    <aside className={`fixed left-0 top-0 h-screen w-64 bg-white border-r border-gray-200 flex flex-col z-40 transition-transform duration-200 ${isOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0`}>
       {/* Logo */}
-      <div className="p-6 border-b border-gray-200">
+      <div className="relative p-6 border-b border-gray-200">
+        <button
+          onClick={onClose}
+          className="absolute right-3 top-3 rounded-lg p-1 text-gray-500 hover:bg-gray-100 md:hidden"
+          aria-label="Close menu"
+        >
+          <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
         <Logo variant="text" width={180} />
       </div>
 
@@ -92,5 +107,12 @@ export function Sidebar() {
         </button>
       </div>
     </aside>
+    {isOpen && (
+      <div
+        className="fixed inset-0 z-30 bg-black/30 md:hidden"
+        onClick={onClose}
+      />
+    )}
+    </>
   );
 }

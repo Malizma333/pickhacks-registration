@@ -7,7 +7,7 @@ import { getRegistrationStatus } from "~/server/actions/registration";
 
 function ApplicationSubmitted() {
   return (
-    <div className="mb-6 rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
+    <div className="mb-6 rounded-xl border border-gray-200 bg-white p-4 md:p-8 shadow-sm">
       <div className="flex items-center gap-4">
         <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#44ab48]">
           <svg
@@ -46,7 +46,7 @@ function ApplicationSubmitted() {
 
 function ApplicationInProgress() {
   return (
-    <div className="mb-6 rounded-xl border border-yellow-400 bg-yellow-50 p-8 shadow-sm">
+    <div className="mb-6 rounded-xl border border-yellow-400 bg-yellow-50 p-4 md:p-8 shadow-sm">
       <div className="flex items-center gap-4">
         {/* Icon */}
         <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-yellow-400">
@@ -82,7 +82,7 @@ function ApplicationInProgress() {
 
 function ApplicationStatusSkeleton() {
   return (
-    <div className="mb-6 rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
+    <div className="mb-6 rounded-xl border border-gray-200 bg-white p-4 md:p-8 shadow-sm">
       <div className="flex items-center gap-4">
         <div className="h-14 w-14 rounded-full bg-gray-300" />
 
@@ -127,12 +127,12 @@ export default function DashboardPage() {
 
   return (
     <ProtectedRoute requireEmailVerification={true}>
-      <div className="mx-auto max-w-5xl px-8 py-12">
+      <div className="mx-auto max-w-5xl px-4 py-6 md:px-8 md:py-12">
         {/* Status */}
         {loading ? <ApplicationStatusSkeleton /> : noRegistration ? <ApplicationInProgress /> : <ApplicationSubmitted />}
 
         {/* QR Code Section */}
-        <div className="rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
+        <div className="rounded-xl border border-gray-200 bg-white p-4 md:p-8 shadow-sm">
           <h2 className="mb-2 text-2xl font-bold text-gray-900">
             Your QR Code
           </h2>
@@ -143,7 +143,7 @@ export default function DashboardPage() {
 
           <div className="flex flex-col items-center">
             {loading ? (
-              <div className="flex h-75 w-75 items-center justify-center rounded-xl bg-gray-50">
+              <div className="flex h-48 w-48 md:h-75 md:w-75 items-center justify-center rounded-xl bg-gray-50">
                 <div className="text-gray-400">Loading...</div>
               </div>
             ) : error ? (
@@ -158,21 +158,21 @@ export default function DashboardPage() {
                     alt="Your PickHacks QR Code"
                     width={300}
                     height={300}
-                    className="h-75 w-75"
+                    className="h-48 w-48 md:h-75 md:w-75"
                     unoptimized
                   />
                 </div>
-                <div className="flex gap-4">
+                <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
                   <button
                     onClick={() => window.print()}
-                    className="rounded-lg bg-[#44ab48] px-6 py-3 font-medium text-white shadow-sm transition hover:bg-[#3a9c3e] hover:shadow"
+                    className="w-full sm:w-auto rounded-lg bg-[#44ab48] px-6 py-3 font-medium text-white shadow-sm transition hover:bg-[#3a9c3e] hover:shadow"
                   >
                     Print QR Code
                   </button>
                   <a
                     href={qrCodeUrl}
                     download="pickhacks-qr-code.png"
-                    className="rounded-lg border-2 border-[#44ab48] px-6 py-3 font-medium text-[#44ab48] transition hover:bg-[#e8f4e5]"
+                    className="w-full sm:w-auto text-center rounded-lg border-2 border-[#44ab48] px-6 py-3 font-medium text-[#44ab48] transition hover:bg-[#e8f4e5]"
                   >
                     Download QR Code
                   </a>
@@ -183,7 +183,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Event Details */}
-        <div className="mt-6 rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
+        <div className="mt-6 rounded-xl border border-gray-200 bg-white p-4 md:p-8 shadow-sm">
           <h2 className="mb-4 text-xl font-bold text-gray-900">
             Event Details
           </h2>

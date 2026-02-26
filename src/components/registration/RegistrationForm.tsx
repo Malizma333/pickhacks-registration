@@ -150,10 +150,10 @@ export function RegistrationForm({
 
   return (
     <ProtectedRoute requireEmailVerification={true}>
-      <form onSubmit={handleSubmit} className="max-w-5xl mx-auto px-8 py-12">
+      <form onSubmit={handleSubmit} className="max-w-5xl mx-auto px-4 py-6 md:px-8 md:py-12">
         {/* Header */}
-        <div className="mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-3 tracking-tight">
+        <div className="mb-6 md:mb-12">
+          <h1 className="text-2xl md:text-4xl font-bold text-gray-900 mb-3 tracking-tight">
             Registration
           </h1>
           <p className="text-lg text-gray-600">
@@ -172,12 +172,12 @@ export function RegistrationForm({
         {/* Form Sections - Grayed out if registered */}
         <div className={`space-y-8 ${isRegistered ? "opacity-60 pointer-events-none" : ""}`}>
           {/* Profile Section */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-10 hover:shadow-md transition-shadow">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 md:p-10 hover:shadow-md transition-shadow">
             <ProfileStep data={profileData} onChange={setProfileData} disabled={isRegistered} />
           </div>
 
           {/* Education Section */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-10 hover:shadow-md transition-shadow">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 md:p-10 hover:shadow-md transition-shadow">
             <EducationStep
               data={educationData}
               onChange={setEducationData}
@@ -187,7 +187,7 @@ export function RegistrationForm({
           </div>
 
           {/* Shipping Section */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-10 hover:shadow-md transition-shadow">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 md:p-10 hover:shadow-md transition-shadow">
             <ShippingStep
               data={shippingData}
               onChange={setShippingData}
@@ -197,7 +197,7 @@ export function RegistrationForm({
           </div>
 
           {/* Dietary Restrictions Section */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-10 hover:shadow-md transition-shadow">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 md:p-10 hover:shadow-md transition-shadow">
             <DietaryStep
               data={dietaryData}
               onChange={setDietaryData}
@@ -207,7 +207,7 @@ export function RegistrationForm({
           </div>
 
           {/* MLH Agreement Section */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-10 hover:shadow-md transition-shadow">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 md:p-10 hover:shadow-md transition-shadow">
             <MlhStep data={mlhData} onChange={setMlhData} disabled={isRegistered} />
           </div>
 

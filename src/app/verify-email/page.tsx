@@ -1,7 +1,7 @@
 export default function VerifyEmailPage() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-[#e8f4e5] p-4">
-      <div className="w-full max-w-md space-y-8 rounded-lg bg-white p-8 shadow-lg">
+      <div className="w-full max-w-md space-y-8 rounded-lg bg-white p-5 md:p-8 shadow-lg">
         <div className="text-center">
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-yellow-100">
             <svg

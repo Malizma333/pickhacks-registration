@@ -35,7 +35,7 @@ export default function AdminLayout({
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="border-b border-gray-200 bg-white shadow-sm">
-        <div className="mx-auto max-w-7xl px-8 py-4">
+        <div className="mx-auto max-w-7xl px-4 md:px-8 py-4">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">
@@ -43,7 +43,7 @@ export default function AdminLayout({
               </h1>
               <p className="text-sm text-gray-500">Event Management Dashboard</p>
             </div>
-            <nav className="flex gap-6">
+            <nav className="flex flex-wrap gap-3 md:gap-6">
               <a
                 href="/admin"
                 className="text-sm font-medium text-gray-700 hover:text-[#44ab48]"
@@ -72,7 +72,7 @@ export default function AdminLayout({
           </div>
         </div>
       </header>
-      <main className="mx-auto max-w-7xl px-8 py-12">{children}</main>
+      <main className="mx-auto max-w-7xl px-4 py-6 md:px-8 md:py-12">{children}</main>
     </div>
   );
 }
