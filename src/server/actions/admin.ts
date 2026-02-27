@@ -2,7 +2,7 @@
 
 import { db } from "~/server/db";
 import { event as eventTable, eventRegistration, user as userTable } from "~/server/db/schema";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import {
   verifyAdmin,
