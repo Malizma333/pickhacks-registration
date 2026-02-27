@@ -85,7 +85,6 @@ export default function StatsPage() {
   }, [completeRegistrations]);
 
   const majorCounts = useMemo(
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     () => countBy(completeRegistrations, (r) => r.education?.major ?? null),
     [completeRegistrations],
   );
@@ -120,7 +119,7 @@ export default function StatsPage() {
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Stats</h1>
+        <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">Stats</h1>
         {activeEvent && (
           <p className="mt-1 text-gray-600">
             {activeEvent.name} — {completeRegistrations.length} complete
@@ -172,7 +171,7 @@ export default function StatsPage() {
                       )}
                     </div>
                     <span
-                      className={`self-start shrink-0 rounded-full px-2 py-0.5 text-xs font-medium sm:self-auto ${r.isComplete ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}`}
+                      className={`shrink-0 self-start rounded-full px-2 py-0.5 text-xs font-medium sm:self-auto ${r.isComplete ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}`}
                     >
                       {r.isComplete ? "Complete" : "Incomplete"}
                     </span>
@@ -224,6 +223,23 @@ export default function StatsPage() {
                     {selectedUser.ageAtEvent}
                   </dd>
                 </div>
+                {selectedUser.hackerProfile.linkedinUrl && (
+                  <div className="sm:col-span-2">
+                    <dt className="text-xs font-medium tracking-wide text-gray-500 uppercase">
+                      LinkedIn
+                    </dt>
+                    <dd className="mt-1 text-sm">
+                      <a
+                        href={selectedUser.hackerProfile.linkedinUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="break-all text-blue-600 hover:underline"
+                      >
+                        {selectedUser.hackerProfile.linkedinUrl}
+                      </a>
+                    </dd>
+                  </div>
+                )}
                 <div>
                   <dt className="text-xs font-medium tracking-wide text-gray-500 uppercase">
                     School
@@ -258,12 +274,38 @@ export default function StatsPage() {
                 </div>
                 <div>
                   <dt className="text-xs font-medium tracking-wide text-gray-500 uppercase">
+                    T-Shirt Size
+                  </dt>
+                  <dd className="mt-1 text-sm text-gray-900">
+                    {selectedUser.shipping?.tshirtSize ?? "N/A"}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-xs font-medium tracking-wide text-gray-500 uppercase">
                     Country
                   </dt>
                   <dd className="mt-1 text-sm text-gray-900">
                     {selectedUser.demographics?.countryOfResidence ?? "N/A"}
                   </dd>
                 </div>
+                {selectedUser.shipping?.addressLine1 && (
+                  <div className="sm:col-span-2">
+                    <dt className="text-xs font-medium tracking-wide text-gray-500 uppercase">
+                      Shipping Address
+                    </dt>
+                    <dd className="mt-1 text-sm text-gray-900">
+                      {selectedUser.shipping.addressLine1}
+                      {selectedUser.shipping.addressLine2 &&
+                        `, ${selectedUser.shipping.addressLine2}`}
+                      <br />
+                      {selectedUser.shipping.city},{" "}
+                      {selectedUser.shipping.state}{" "}
+                      {selectedUser.shipping.postalCode}
+                      {selectedUser.shipping.country &&
+                        `, ${selectedUser.shipping.country}`}
+                    </dd>
+                  </div>
+                )}
                 <div>
                   <dt className="text-xs font-medium tracking-wide text-gray-500 uppercase">
                     Dietary Restrictions

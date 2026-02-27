@@ -37,6 +37,7 @@ export interface HackerProfile {
   firstName: string;
   lastName: string;
   phoneNumber: string;
+  linkedinUrl?: string | null;
   user?: { email: string };
 }
 
@@ -45,6 +46,16 @@ export interface Education {
   levelOfStudy?: string;
   major?: string | null;
   graduationYear?: number | null;
+}
+
+export interface Shipping {
+  addressLine1?: string;
+  addressLine2?: string | null;
+  city?: string;
+  state?: string;
+  country?: string;
+  postalCode?: string;
+  tshirtSize?: string | null;
 }
 
 export interface DietaryRestriction {
@@ -64,7 +75,11 @@ export interface HackerInfo {
   id: string;
   qrCode: string;
   isComplete: boolean;
+  ageAtEvent: number;
   hackerProfile: HackerProfile;
+  education?: Education;
+  shipping?: Shipping;
+  demographics?: Demographics;
   dietaryRestrictions: DietaryRestriction[];
   checkIns: CheckInRecord[];
 }
@@ -81,6 +96,7 @@ export interface Registration {
   createdAt: Date;
   hackerProfile: HackerProfile;
   education?: Education;
+  shipping?: Shipping;
   demographics?: Demographics;
   dietaryRestrictions?: {
     dietaryRestriction: { name: string };

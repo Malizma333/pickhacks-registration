@@ -1,11 +1,18 @@
 "use client";
 
+import type { Education, Shipping, Demographics } from "~/types/admin";
+
 interface HackerInfoCardProps {
   hacker: {
     firstName: string;
     lastName: string;
     phoneNumber: string;
+    linkedinUrl?: string | null;
   };
+  ageAtEvent?: number;
+  education?: Education;
+  shipping?: Shipping;
+  demographics?: Demographics;
   dietaryRestrictions: {
     name: string;
     allergyDetails: string | null;
@@ -16,6 +23,10 @@ interface HackerInfoCardProps {
 
 export function HackerInfoCard({
   hacker,
+  ageAtEvent,
+  education,
+  shipping,
+  demographics,
   dietaryRestrictions,
   isComplete = true,
   showDietaryProminent = false,
@@ -51,6 +62,109 @@ export function HackerInfoCard({
             </span>
           )}
         </div>
+      </div>
+
+      {/* Full Details */}
+      <div className="px-6 py-4 border-b border-gray-200">
+        <dl className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
+          {ageAtEvent != null && (
+            <div>
+              <dt className="text-xs font-medium tracking-wide text-gray-500 uppercase">
+                Age
+              </dt>
+              <dd className="mt-0.5 text-gray-900">{ageAtEvent}</dd>
+            </div>
+          )}
+          {hacker.linkedinUrl && (
+            <div className="col-span-2">
+              <dt className="text-xs font-medium tracking-wide text-gray-500 uppercase">
+                LinkedIn
+              </dt>
+              <dd className="mt-0.5">
+                <a
+                  href={hacker.linkedinUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:underline break-all"
+                >
+                  {hacker.linkedinUrl}
+                </a>
+              </dd>
+            </div>
+          )}
+          {education?.school?.name && (
+            <div>
+              <dt className="text-xs font-medium tracking-wide text-gray-500 uppercase">
+                School
+              </dt>
+              <dd className="mt-0.5 text-gray-900">
+                {education.school.name}
+              </dd>
+            </div>
+          )}
+          {education?.levelOfStudy && (
+            <div>
+              <dt className="text-xs font-medium tracking-wide text-gray-500 uppercase">
+                Level of Study
+              </dt>
+              <dd className="mt-0.5 text-gray-900">
+                {education.levelOfStudy}
+              </dd>
+            </div>
+          )}
+          {education?.major && (
+            <div>
+              <dt className="text-xs font-medium tracking-wide text-gray-500 uppercase">
+                Major
+              </dt>
+              <dd className="mt-0.5 text-gray-900">{education.major}</dd>
+            </div>
+          )}
+          {education?.graduationYear && (
+            <div>
+              <dt className="text-xs font-medium tracking-wide text-gray-500 uppercase">
+                Expected Graduation
+              </dt>
+              <dd className="mt-0.5 text-gray-900">
+                {education.graduationYear}
+              </dd>
+            </div>
+          )}
+          {shipping?.tshirtSize && (
+            <div>
+              <dt className="text-xs font-medium tracking-wide text-gray-500 uppercase">
+                T-Shirt Size
+              </dt>
+              <dd className="mt-0.5 text-gray-900">
+                {shipping.tshirtSize}
+              </dd>
+            </div>
+          )}
+          {demographics?.countryOfResidence && (
+            <div>
+              <dt className="text-xs font-medium tracking-wide text-gray-500 uppercase">
+                Country
+              </dt>
+              <dd className="mt-0.5 text-gray-900">
+                {demographics.countryOfResidence}
+              </dd>
+            </div>
+          )}
+          {shipping?.addressLine1 && (
+            <div className="col-span-2">
+              <dt className="text-xs font-medium tracking-wide text-gray-500 uppercase">
+                Shipping Address
+              </dt>
+              <dd className="mt-0.5 text-gray-900">
+                {shipping.addressLine1}
+                {shipping.addressLine2 && `, ${shipping.addressLine2}`}
+                <br />
+                {shipping.city}, {shipping.state} {shipping.postalCode}
+                {shipping.country && `, ${shipping.country}`}
+              </dd>
+            </div>
+          )}
+        </dl>
       </div>
 
       {/* Dietary Restrictions - Prominent when at food station */}

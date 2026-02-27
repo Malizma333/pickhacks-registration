@@ -227,6 +227,10 @@ export default function CheckInPage() {
             <>
               <HackerInfoCard
                 hacker={hackerInfo.hackerProfile}
+                ageAtEvent={hackerInfo.ageAtEvent}
+                education={hackerInfo.education}
+                shipping={hackerInfo.shipping}
+                demographics={hackerInfo.demographics}
                 dietaryRestrictions={hackerInfo.dietaryRestrictions}
                 isComplete={hackerInfo.isComplete}
                 showDietaryProminent={isFoodStation}

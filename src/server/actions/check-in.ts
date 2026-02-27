@@ -160,6 +160,9 @@ export async function lookupRegistrationByQRCode(qrCode: string) {
       ),
       with: {
         hackerProfile: true,
+        education: { with: { school: true } },
+        shipping: true,
+        demographics: true,
         dietaryRestrictions: {
           with: {
             dietaryRestriction: true,
@@ -183,11 +186,39 @@ export async function lookupRegistrationByQRCode(qrCode: string) {
         id: registration.id,
         qrCode: registration.qrCode,
         isComplete: registration.isComplete,
+        ageAtEvent: registration.ageAtEvent,
         hackerProfile: {
           firstName: registration.hackerProfile.firstName,
           lastName: registration.hackerProfile.lastName,
           phoneNumber: registration.hackerProfile.phoneNumber,
+          linkedinUrl: registration.hackerProfile.linkedinUrl,
         },
+        education: registration.education
+          ? {
+              school: registration.education.school
+                ? { name: registration.education.school.name }
+                : undefined,
+              levelOfStudy: registration.education.levelOfStudy,
+              major: registration.education.major,
+              graduationYear: registration.education.graduationYear,
+            }
+          : undefined,
+        shipping: registration.shipping
+          ? {
+              addressLine1: registration.shipping.addressLine1,
+              addressLine2: registration.shipping.addressLine2,
+              city: registration.shipping.city,
+              state: registration.shipping.state,
+              country: registration.shipping.country,
+              postalCode: registration.shipping.postalCode,
+              tshirtSize: registration.shipping.tshirtSize,
+            }
+          : undefined,
+        demographics: registration.demographics
+          ? {
+              countryOfResidence: registration.demographics.countryOfResidence,
+            }
+          : undefined,
         dietaryRestrictions: registration.dietaryRestrictions.map((dr) => ({
           name: dr.dietaryRestriction.name,
           allergyDetails: dr.allergyDetails,
