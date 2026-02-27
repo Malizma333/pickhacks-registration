@@ -1,7 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { fetchEventRegistrations, fetchActiveEvent } from "~/server/actions/admin";
+import {
+  fetchEventRegistrations,
+  fetchActiveEvent,
+} from "~/server/actions/admin";
 import { COLORS } from "~/constants";
 import { LoadingState } from "~/components/ui/LoadingSpinner";
 import { AlertMessage } from "~/components/ui/AlertMessage";
@@ -30,7 +33,7 @@ export default function RegistrationsPage() {
         if ("error" in result && result.error) {
           setErrorMessage(result.error);
         } else if ("registrations" in result) {
-          setRegistrations(result.registrations as Registration[] || []);
+          setRegistrations((result.registrations as Registration[]) || []);
         }
       } catch (err) {
         setErrorMessage("Failed to load registrations");
@@ -45,31 +48,54 @@ export default function RegistrationsPage() {
   // Filter registrations based on search term
   const filteredRegistrations = registrations.filter((registration) => {
     const query = searchTerm.toLowerCase();
-    const fullName = `${registration.hackerProfile.firstName} ${registration.hackerProfile.lastName}`.toLowerCase();
-    const email = registration.hackerProfile.email?.toLowerCase() ?? "";
+    const fullName =
+      `${registration.hackerProfile.firstName} ${registration.hackerProfile.lastName}`.toLowerCase();
+    const email = registration.hackerProfile.user?.email?.toLowerCase() ?? "";
     const qrCode = registration.qrCode?.toLowerCase() ?? "";
 
-    return fullName.includes(query) || email.includes(query) || qrCode.includes(query);
+    return (
+      fullName.includes(query) ||
+      email.includes(query) ||
+      qrCode.includes(query)
+    );
   });
 
   const handleExportCSV = () => {
-    const csvHeaders = ["First Name", "Last Name", "Email", "Phone", "Age", "School", "Level of Study", "Dietary Restrictions", "QR Code", "Registration Date"];
+    const csvHeaders = [
+      "First Name",
+      "Last Name",
+      "Email",
+      "Phone",
+      "Age",
+      "Country of Residence",
+      "School",
+      "Level of Study",
+      "Dietary Restrictions",
+      "QR Code",
+      "Registration Date",
+    ];
     const csvRows = filteredRegistrations.map((registration) => [
       registration.hackerProfile.firstName,
       registration.hackerProfile.lastName,
-      registration.hackerProfile.email ?? "",
-      registration.hackerProfile.phoneNumber,
-      registration.ageAtEvent,
+      registration.hackerProfile.user?.email ?? "",
+      registration.hackerProfile.phoneNumber ?? "",
+      registration.ageAtEvent ?? "",
+      registration.demographics?.countryOfResidence ?? "",
       registration.education?.school?.name ?? "",
       registration.education?.levelOfStudy ?? "",
-      registration.dietaryRestrictions && registration.dietaryRestrictions.length > 0
-        ? registration.dietaryRestrictions.map((d) => d.dietaryRestriction.name).join("; ")
+      registration.dietaryRestrictions &&
+      registration.dietaryRestrictions.length > 0
+        ? registration.dietaryRestrictions
+            .map((d) => d.dietaryRestriction.name)
+            .join("; ")
         : "None",
       registration.qrCode,
       new Date(registration.createdAt).toLocaleDateString(),
     ]);
 
-    const csvContent = [csvHeaders, ...csvRows].map((row) => row.join(",")).join("\n");
+    const csvContent = [csvHeaders, ...csvRows]
+      .map((row) => row.join(","))
+      .join("\n");
     const blob = new Blob([csvContent], { type: "text/csv" });
     const downloadUrl = window.URL.createObjectURL(blob);
     const downloadLink = document.createElement("a");
@@ -89,9 +115,9 @@ export default function RegistrationsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Registrations</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Registrations</h1>
           {activeEvent && (
             <p className="mt-1 text-gray-600">
               {activeEvent.name} - {filteredRegistrations.length} registrations
@@ -100,7 +126,7 @@ export default function RegistrationsPage() {
         </div>
         <button
           onClick={handleExportCSV}
-          className={`rounded-lg bg-[${COLORS.primary}] px-6 py-3 font-medium text-white shadow-sm transition hover:bg-[${COLORS.primaryHover}] hover:shadow`}
+          className={`w-full sm:w-auto rounded-lg bg-[${COLORS.primary}] px-6 py-3 font-medium text-white shadow-sm transition hover:bg-[${COLORS.primaryHover}] hover:shadow`}
         >
           Export to CSV
         </button>
@@ -113,7 +139,7 @@ export default function RegistrationsPage() {
           placeholder="Search by name, email, or QR code..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-base text-gray-900 placeholder-gray-400 transition-all duration-200 focus:border-[#44ab48] focus:outline-none focus:ring-4 focus:ring-[#44ab48]/10 focus:bg-white hover:border-gray-300"
+          className="w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-base text-gray-900 placeholder-gray-400 transition-all duration-200 hover:border-gray-300 focus:border-[#44ab48] focus:bg-white focus:ring-4 focus:ring-[#44ab48]/10 focus:outline-none"
         />
       </div>
 
@@ -173,9 +199,9 @@ export default function RegistrationsPage() {
                           {registration.hackerProfile.firstName}{" "}
                           {registration.hackerProfile.lastName}
                         </div>
-                        {registration.hackerProfile.email && (
+                        {registration.hackerProfile.user?.email && (
                           <div className="text-sm text-gray-500">
-                            {registration.hackerProfile.email}
+                            {registration.hackerProfile.user.email}
                           </div>
                         )}
                       </div>
@@ -193,14 +219,15 @@ export default function RegistrationsPage() {
                       {registration.education?.levelOfStudy ?? "N/A"}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-700">
-                      {registration.dietaryRestrictions && registration.dietaryRestrictions.length > 0
+                      {registration.dietaryRestrictions &&
+                      registration.dietaryRestrictions.length > 0
                         ? registration.dietaryRestrictions
                             .map((d) => d.dietaryRestriction.name)
                             .join(", ")
                         : "None"}
                     </td>
                     <td className="px-6 py-4">
-                      <code className="rounded bg-gray-100 px-2 py-1 text-xs font-mono text-gray-800">
+                      <code className="rounded bg-gray-100 px-2 py-1 font-mono text-xs text-gray-800">
                         {registration.qrCode}
                       </code>
                     </td>
@@ -230,20 +257,22 @@ export default function RegistrationsPage() {
             Complete Profiles
           </dt>
           <dd className={`mt-2 text-3xl font-bold text-[${COLORS.primary}]`}>
-            {filteredRegistrations.filter((registration) => registration.isComplete).length}
+            {
+              filteredRegistrations.filter(
+                (registration) => registration.isComplete,
+              ).length
+            }
           </dd>
         </div>
         <div className="rounded-lg border border-gray-200 bg-white p-6">
-          <dt className="text-sm font-medium text-gray-500">
-            Average Age
-          </dt>
+          <dt className="text-sm font-medium text-gray-500">Average Age</dt>
           <dd className="mt-2 text-3xl font-bold text-blue-600">
             {filteredRegistrations.length > 0
               ? Math.round(
                   filteredRegistrations.reduce(
                     (total, registration) => total + registration.ageAtEvent,
-                    0
-                  ) / filteredRegistrations.length
+                    0,
+                  ) / filteredRegistrations.length,
                 )
               : 0}
           </dd>

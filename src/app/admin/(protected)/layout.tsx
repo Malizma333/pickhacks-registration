@@ -36,14 +36,14 @@ export default function AdminLayout({
     <div className="min-h-screen bg-gray-50">
       <header className="border-b border-gray-200 bg-white shadow-sm">
         <div className="mx-auto max-w-7xl px-4 md:px-8 py-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
                 PickHacks Admin
               </h1>
-              <p className="text-sm text-gray-500">Event Management Dashboard</p>
+              <p className="hidden sm:block text-sm text-gray-500">Event Management Dashboard</p>
             </div>
-            <nav className="flex flex-wrap gap-3 md:gap-6">
+            <nav className="flex flex-wrap gap-2 sm:gap-3 md:gap-6">
               <a
                 href="/admin"
                 className="text-sm font-medium text-gray-700 hover:text-[#44ab48]"
@@ -55,6 +55,12 @@ export default function AdminLayout({
                 className="text-sm font-medium text-gray-700 hover:text-[#44ab48]"
               >
                 Registrations
+              </a>
+              <a
+                href="/admin/stats"
+                className="text-sm font-medium text-gray-700 hover:text-[#44ab48]"
+              >
+                Stats
               </a>
               <a
                 href="/admin/check-in"

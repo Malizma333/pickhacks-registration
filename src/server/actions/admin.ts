@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "~/server/db";
-import { event as eventTable, eventRegistration } from "~/server/db/schema";
+import { event as eventTable, eventRegistration, user as userTable } from "~/server/db/schema";
 import { eq, and, desc } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import {
@@ -146,8 +146,11 @@ export async function fetchEventRegistrations(eventId?: string) {
     const registrations = await db.query.eventRegistration.findMany({
       where: eq(eventRegistration.eventId, targetEventId),
       with: {
-        hackerProfile: true,
+        hackerProfile: {
+          with: { user: true },
+        },
         education: { with: { school: true } },
+        demographics: true,
         shipping: true,
         mlhAgreement: true,
         dietaryRestrictions: { with: { dietaryRestriction: true } },
@@ -162,6 +165,53 @@ export async function fetchEventRegistrations(eventId?: string) {
   }
 }
 
+interface UpdateEventData {
+  name?: string;
+  year?: number;
+  startDate?: string;
+  endDate?: string;
+  registrationOpensAt?: string | null;
+  registrationClosesAt?: string | null;
+}
+
+export async function updateEvent(eventId: string, data: UpdateEventData) {
+  try {
+    const authResult = await verifyAdmin();
+    if (authResult.error) {
+      return authResult;
+    }
+
+    const updateFields: Record<string, unknown> = {
+      updatedAt: new Date(),
+    };
+
+    if (data.name !== undefined) updateFields.name = data.name;
+    if (data.year !== undefined) updateFields.year = data.year;
+    if (data.startDate !== undefined)
+      updateFields.startDate = new Date(data.startDate);
+    if (data.endDate !== undefined)
+      updateFields.endDate = new Date(data.endDate);
+    if (data.registrationOpensAt !== undefined)
+      updateFields.registrationOpensAt = data.registrationOpensAt
+        ? new Date(data.registrationOpensAt)
+        : null;
+    if (data.registrationClosesAt !== undefined)
+      updateFields.registrationClosesAt = data.registrationClosesAt
+        ? new Date(data.registrationClosesAt)
+        : null;
+
+    await db
+      .update(eventTable)
+      .set(updateFields)
+      .where(eq(eventTable.id, eventId));
+
+    return { success: true };
+  } catch (error) {
+    console.error("Update event error:", error);
+    return { error: "Failed to update event" };
+  }
+}
+
 export async function fetchRegistrationStats(eventId?: string) {
   try {
     const result = await verifyAdminWithActiveEvent();
@@ -171,17 +221,19 @@ export async function fetchRegistrationStats(eventId?: string) {
 
     const targetEventId = eventId ?? result.activeEvent!.id;
 
-    const registrations = await db.query.eventRegistration.findMany({
-      where: and(
-        eq(eventRegistration.eventId, targetEventId),
-        eq(eventRegistration.isComplete, true)
-      ),
-    });
+    const [allUsers, registrations] = await Promise.all([
+      db.query.user.findMany({
+        where: eq(userTable.isAdmin, false),
+      }),
+      db.query.eventRegistration.findMany({
+        where: eq(eventRegistration.eventId, targetEventId),
+      }),
+    ]);
 
     return {
       success: true,
       stats: {
-        totalRegistrations: registrations.length,
+        totalAccounts: allUsers.length,
         completeRegistrations: registrations.filter((r) => r.isComplete).length,
       },
     };

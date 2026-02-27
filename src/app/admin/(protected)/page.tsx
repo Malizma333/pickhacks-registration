@@ -6,6 +6,7 @@ import { FormInput } from "~/components/ui/FormInput";
 import {
   createEvent,
   deleteEvent,
+  updateEvent,
   fetchActiveEvent,
   fetchRegistrationStats,
   canCreateEvent,
@@ -24,12 +25,13 @@ interface EventData {
 }
 
 interface RegistrationStats {
-  totalRegistrations: number;
+  totalAccounts: number;
   completeRegistrations: number;
 }
 
 function formatDate(date: Date | string): string {
   return new Date(date).toLocaleDateString("en-US", {
+    timeZone: "UTC",
     weekday: "short",
     year: "numeric",
     month: "short",
@@ -41,16 +43,39 @@ function hasEventEnded(endDate: Date | string): boolean {
   return new Date() > new Date(endDate);
 }
 
+function toDateInputValue(date: Date | string): string {
+  return new Date(date).toISOString().split("T")[0] ?? "";
+}
+
+function toDatetimeInputValue(date: Date | string | null): string {
+  if (!date) return "";
+  const d = new Date(date);
+  d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+  return d.toISOString().slice(0, 16);
+}
+
 export default function AdminPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [activeEvent, setActiveEvent] = useState<EventData | null>(null);
-  const [registrationStats, setRegistrationStats] = useState<RegistrationStats | null>(null);
+  const [registrationStats, setRegistrationStats] =
+    useState<RegistrationStats | null>(null);
   const [isCreateFormVisible, setIsCreateFormVisible] = useState(false);
   const [canCreateNewEvent, setCanCreateNewEvent] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(true);
+
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [editFormData, setEditFormData] = useState({
+    name: "",
+    year: new Date().getFullYear(),
+    startDate: "",
+    endDate: "",
+    registrationOpensAt: "",
+    registrationClosesAt: "",
+  });
 
   const [eventFormData, setEventFormData] = useState({
     name: "",
@@ -112,7 +137,7 @@ export default function AdminPage() {
     if (!activeEvent) return;
 
     const isConfirmed = window.confirm(
-      `Are you sure you want to delete "${activeEvent.name}"? This action cannot be undone.`
+      `Are you sure you want to delete "${activeEvent.name}"? This action cannot be undone.`,
     );
 
     if (!isConfirmed) return;
@@ -133,10 +158,49 @@ export default function AdminPage() {
     setIsDeleting(false);
   };
 
+  const startEditing = () => {
+    if (!activeEvent) return;
+    setEditFormData({
+      name: activeEvent.name,
+      year: activeEvent.year,
+      startDate: toDateInputValue(activeEvent.startDate),
+      endDate: toDateInputValue(activeEvent.endDate),
+      registrationOpensAt: toDatetimeInputValue(
+        activeEvent.registrationOpensAt,
+      ),
+      registrationClosesAt: toDatetimeInputValue(
+        activeEvent.registrationClosesAt,
+      ),
+    });
+    setIsEditing(true);
+  };
+
+  const handleUpdateEvent = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!activeEvent) return;
+
+    setIsSaving(true);
+    setErrorMessage(null);
+    setSuccessMessage(null);
+
+    const result = await updateEvent(activeEvent.id, editFormData);
+
+    if ("error" in result) {
+      setErrorMessage(result.error);
+    } else {
+      setSuccessMessage("Event updated successfully!");
+      setIsEditing(false);
+      void loadEventData();
+    }
+    setIsSaving(false);
+  };
+
   if (isLoadingData) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <div className={`inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-[${COLORS.primary}] border-r-transparent`} />
+        <div
+          className={`inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-[${COLORS.primary}] border-r-transparent`}
+        />
       </div>
     );
   }
@@ -144,94 +208,239 @@ export default function AdminPage() {
   return (
     <div className="space-y-8">
       {errorMessage && (
-        <div className="rounded-lg bg-red-50 border border-red-200 p-4 text-red-800">
+        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-800">
           {errorMessage}
         </div>
       )}
 
       {successMessage && (
-        <div className="rounded-lg bg-green-50 border border-green-200 p-4 text-green-800">
+        <div className="rounded-lg border border-green-200 bg-green-50 p-4 text-green-800">
           {successMessage}
         </div>
       )}
 
       {activeEvent ? (
-        <div className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
-          <div className={`bg-linear-to-r from-[${COLORS.primary}] to-[${COLORS.primaryHover}] px-8 py-6`}>
+        <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+          <div
+            className={`bg-linear-to-r from-[${COLORS.primary}] to-[${COLORS.primaryHover}] px-4 py-4 sm:px-8 sm:py-6`}
+          >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-white/80">Active Event</p>
-                <h2 className="text-2xl font-bold text-white mt-1">
+                <p className="text-sm font-medium text-black">Active Event</p>
+                <h2 className="mt-1 text-xl sm:text-2xl font-bold text-black">
                   {activeEvent.name}
                 </h2>
               </div>
-              {hasEventEnded(activeEvent.endDate) && (
-                <span className="rounded-full bg-yellow-400 px-4 py-1 text-sm font-semibold text-yellow-900">
-                  Event Ended
-                </span>
-              )}
+              <div className="flex items-center gap-3">
+                {hasEventEnded(activeEvent.endDate) && (
+                  <span className="rounded-full bg-yellow-400 px-4 py-1 text-sm font-semibold text-yellow-900">
+                    Event Ended
+                  </span>
+                )}
+                {!isEditing && (
+                  <button
+                    onClick={startEditing}
+                    className="rounded-lg bg-black/10 px-4 py-1.5 text-sm font-medium text-black transition-colors hover:bg-black/20"
+                  >
+                    Edit
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 
-          <div className="p-8">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
-              <div className="rounded-xl bg-gray-50 p-4">
-                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-                  Start Date
-                </p>
-                <p className="mt-1 text-lg font-semibold text-gray-900">
-                  {formatDate(activeEvent.startDate)}
-                </p>
+          <div className="p-4 sm:p-8">
+            {isEditing ? (
+              <form onSubmit={handleUpdateEvent} className="mb-8 space-y-6">
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-gray-700">
+                      Event Name
+                    </label>
+                    <FormInput
+                      type="text"
+                      name="name"
+                      value={editFormData.name}
+                      onChange={(e) =>
+                        setEditFormData({
+                          ...editFormData,
+                          name: e.target.value,
+                        })
+                      }
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-gray-700">
+                      Year
+                    </label>
+                    <FormInput
+                      type="number"
+                      name="year"
+                      value={editFormData.year.toString()}
+                      onChange={(e) =>
+                        setEditFormData({
+                          ...editFormData,
+                          year:
+                            parseInt(e.target.value) ||
+                            new Date().getFullYear(),
+                        })
+                      }
+                      required
+                      min={2020}
+                      max={2050}
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-gray-700">
+                      Start Date
+                    </label>
+                    <FormInput
+                      type="date"
+                      name="startDate"
+                      value={editFormData.startDate}
+                      onChange={(e) =>
+                        setEditFormData({
+                          ...editFormData,
+                          startDate: e.target.value,
+                        })
+                      }
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-gray-700">
+                      End Date
+                    </label>
+                    <FormInput
+                      type="date"
+                      name="endDate"
+                      value={editFormData.endDate}
+                      onChange={(e) =>
+                        setEditFormData({
+                          ...editFormData,
+                          endDate: e.target.value,
+                        })
+                      }
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-gray-700">
+                      Registration Opens
+                      <span className="font-normal text-gray-400">
+                        {" "}
+                        (optional)
+                      </span>
+                    </label>
+                    <FormInput
+                      type="datetime-local"
+                      name="registrationOpensAt"
+                      value={editFormData.registrationOpensAt}
+                      onChange={(e) =>
+                        setEditFormData({
+                          ...editFormData,
+                          registrationOpensAt: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-gray-700">
+                      Registration Closes
+                      <span className="font-normal text-gray-400">
+                        {" "}
+                        (optional)
+                      </span>
+                    </label>
+                    <FormInput
+                      type="datetime-local"
+                      name="registrationClosesAt"
+                      value={editFormData.registrationClosesAt}
+                      onChange={(e) =>
+                        setEditFormData({
+                          ...editFormData,
+                          registrationClosesAt: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                </div>
+                <div className="flex justify-end gap-3 border-t border-gray-100 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setIsEditing(false)}
+                    className="rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+                  <Button type="submit" variant="primary" disabled={isSaving}>
+                    {isSaving ? "Saving..." : "Save Changes"}
+                  </Button>
+                </div>
+              </form>
+            ) : (
+              <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 md:grid-cols-4">
+                <div className="rounded-xl bg-gray-50 p-4">
+                  <p className="text-xs font-medium tracking-wide text-gray-500 uppercase">
+                    Start Date
+                  </p>
+                  <p className="mt-1 text-lg font-semibold text-gray-900">
+                    {formatDate(activeEvent.startDate)}
+                  </p>
+                </div>
+                <div className="rounded-xl bg-gray-50 p-4">
+                  <p className="text-xs font-medium tracking-wide text-gray-500 uppercase">
+                    End Date
+                  </p>
+                  <p className="mt-1 text-lg font-semibold text-gray-900">
+                    {formatDate(activeEvent.endDate)}
+                  </p>
+                </div>
+                <div className="rounded-xl bg-gray-50 p-4">
+                  <p className="text-xs font-medium tracking-wide text-gray-500 uppercase">
+                    Registration Opens
+                  </p>
+                  <p className="mt-1 text-lg font-semibold text-gray-900">
+                    {activeEvent.registrationOpensAt
+                      ? formatDate(activeEvent.registrationOpensAt)
+                      : "—"}
+                  </p>
+                </div>
+                <div className="rounded-xl bg-gray-50 p-4">
+                  <p className="text-xs font-medium tracking-wide text-gray-500 uppercase">
+                    Registration Closes
+                  </p>
+                  <p className="mt-1 text-lg font-semibold text-gray-900">
+                    {activeEvent.registrationClosesAt
+                      ? formatDate(activeEvent.registrationClosesAt)
+                      : "—"}
+                  </p>
+                </div>
               </div>
-              <div className="rounded-xl bg-gray-50 p-4">
-                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-                  End Date
-                </p>
-                <p className="mt-1 text-lg font-semibold text-gray-900">
-                  {formatDate(activeEvent.endDate)}
-                </p>
-              </div>
-              <div className="rounded-xl bg-gray-50 p-4">
-                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-                  Registration Opens
-                </p>
-                <p className="mt-1 text-lg font-semibold text-gray-900">
-                  {activeEvent.registrationOpensAt
-                    ? formatDate(activeEvent.registrationOpensAt)
-                    : "—"}
-                </p>
-              </div>
-              <div className="rounded-xl bg-gray-50 p-4">
-                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-                  Registration Closes
-                </p>
-                <p className="mt-1 text-lg font-semibold text-gray-900">
-                  {activeEvent.registrationClosesAt
-                    ? formatDate(activeEvent.registrationClosesAt)
-                    : "—"}
-                </p>
-              </div>
-            </div>
+            )}
 
             {registrationStats && (
               <div className="border-t border-gray-100 pt-8">
-                <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">
+                <h3 className="mb-4 text-sm font-semibold tracking-wide text-gray-900 uppercase">
                   Registration Statistics
                 </h3>
-                <div className="grid grid-cols-2 gap-6">
-                  <div className={`rounded-xl bg-[${COLORS.primaryLight}] p-6`}>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6">
+                  <div className={`rounded-xl bg-[${COLORS.primaryLight}] p-4 sm:p-6`}>
                     <p className="text-sm font-medium text-[#2d7a32]">
-                      Total Registrations
+                      Total Accounts
                     </p>
-                    <p className={`mt-2 text-4xl font-bold text-[${COLORS.primary}]`}>
-                      {registrationStats.totalRegistrations}
+                    <p
+                      className={`mt-2 text-3xl sm:text-4xl font-bold text-[${COLORS.primary}]`}
+                    >
+                      {registrationStats.totalAccounts}
                     </p>
                   </div>
-                  <div className="rounded-xl bg-blue-50 p-6">
+                  <div className="rounded-xl bg-blue-50 p-4 sm:p-6">
                     <p className="text-sm font-medium text-blue-700">
                       Complete Registrations
                     </p>
-                    <p className="mt-2 text-4xl font-bold text-blue-600">
+                    <p className="mt-2 text-3xl sm:text-4xl font-bold text-blue-600">
                       {registrationStats.completeRegistrations}
                     </p>
                   </div>
@@ -239,25 +448,27 @@ export default function AdminPage() {
               </div>
             )}
 
-            <div className="border-t border-gray-100 pt-8 mt-8 flex justify-between items-center">
+            <div className="mt-8 flex items-center justify-between border-t border-gray-100 pt-8">
               <p className="text-sm text-gray-500">
                 {canCreateNewEvent
                   ? "This event has ended. You can create a new event."
                   : "Only one active event is allowed at a time."}
               </p>
-              <button
-                onClick={handleDeleteEvent}
-                disabled={isDeleting}
-                className="rounded-lg border-2 border-red-300 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-50 transition-colors"
-              >
-                {isDeleting ? "Deleting..." : "Delete Event"}
-              </button>
+              {/*
+                <button
+                  onClick={handleDeleteEvent}
+                  disabled={isDeleting}
+                  className="rounded-lg border-2 border-red-300 px-4 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 disabled:opacity-50"
+                >
+                  {isDeleting ? "Deleting..." : "Delete Event"}
+                </button>{" "}
+              */}
             </div>
           </div>
         </div>
       ) : (
         <div className="rounded-2xl border-2 border-dashed border-gray-300 bg-gray-50 p-12 text-center">
-          <div className="mx-auto h-16 w-16 rounded-full bg-gray-200 flex items-center justify-center mb-4">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-200">
             <svg
               className="h-8 w-8 text-gray-400"
               fill="none"
@@ -272,7 +483,9 @@ export default function AdminPage() {
               />
             </svg>
           </div>
-          <h3 className="text-lg font-semibold text-gray-900">No Active Event</h3>
+          <h3 className="text-lg font-semibold text-gray-900">
+            No Active Event
+          </h3>
           <p className="mt-2 text-gray-600">
             Create an event to start accepting registrations.
           </p>
@@ -281,15 +494,18 @@ export default function AdminPage() {
 
       {canCreateNewEvent && !isCreateFormVisible && (
         <div className="flex justify-center">
-          <Button onClick={() => setIsCreateFormVisible(true)} variant="primary">
+          <Button
+            onClick={() => setIsCreateFormVisible(true)}
+            variant="primary"
+          >
             Create New Event
           </Button>
         </div>
       )}
 
       {isCreateFormVisible && (
-        <div className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
-          <div className="border-b border-gray-200 bg-gray-50 px-8 py-4">
+        <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+          <div className="border-b border-gray-200 bg-gray-50 px-4 py-4 sm:px-8">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold text-gray-900">
                 Create New Event
@@ -315,10 +531,10 @@ export default function AdminPage() {
             </div>
           </div>
 
-          <form onSubmit={handleCreateEvent} className="p-8 space-y-6">
+          <form onSubmit={handleCreateEvent} className="space-y-6 p-4 sm:p-8">
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="mb-2 block text-sm font-medium text-gray-700">
                   Event Name
                 </label>
                 <FormInput
@@ -334,7 +550,7 @@ export default function AdminPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="mb-2 block text-sm font-medium text-gray-700">
                   Year
                 </label>
                 <FormInput
@@ -344,7 +560,8 @@ export default function AdminPage() {
                   onChange={(e) =>
                     setEventFormData({
                       ...eventFormData,
-                      year: parseInt(e.target.value) || new Date().getFullYear(),
+                      year:
+                        parseInt(e.target.value) || new Date().getFullYear(),
                     })
                   }
                   required
@@ -354,7 +571,7 @@ export default function AdminPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="mb-2 block text-sm font-medium text-gray-700">
                   Start Date
                 </label>
                 <FormInput
@@ -362,14 +579,17 @@ export default function AdminPage() {
                   name="startDate"
                   value={eventFormData.startDate}
                   onChange={(e) =>
-                    setEventFormData({ ...eventFormData, startDate: e.target.value })
+                    setEventFormData({
+                      ...eventFormData,
+                      startDate: e.target.value,
+                    })
                   }
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="mb-2 block text-sm font-medium text-gray-700">
                   End Date
                 </label>
                 <FormInput
@@ -377,16 +597,19 @@ export default function AdminPage() {
                   name="endDate"
                   value={eventFormData.endDate}
                   onChange={(e) =>
-                    setEventFormData({ ...eventFormData, endDate: e.target.value })
+                    setEventFormData({
+                      ...eventFormData,
+                      endDate: e.target.value,
+                    })
                   }
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="mb-2 block text-sm font-medium text-gray-700">
                   Registration Opens
-                  <span className="text-gray-400 font-normal"> (optional)</span>
+                  <span className="font-normal text-gray-400"> (optional)</span>
                 </label>
                 <FormInput
                   type="datetime-local"
@@ -402,9 +625,9 @@ export default function AdminPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="mb-2 block text-sm font-medium text-gray-700">
                   Registration Closes
-                  <span className="text-gray-400 font-normal"> (optional)</span>
+                  <span className="font-normal text-gray-400"> (optional)</span>
                 </label>
                 <FormInput
                   type="datetime-local"
@@ -420,11 +643,11 @@ export default function AdminPage() {
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+            <div className="flex justify-end gap-3 border-t border-gray-100 pt-4">
               <button
                 type="button"
                 onClick={() => setIsCreateFormVisible(false)}
-                className="rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                className="rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
               >
                 Cancel
               </button>
