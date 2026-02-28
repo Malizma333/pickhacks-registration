@@ -234,6 +234,8 @@ export default function CheckInPage() {
                 dietaryRestrictions={hackerInfo.dietaryRestrictions}
                 isComplete={hackerInfo.isComplete}
                 showDietaryProminent={isFoodStation}
+                resumeUrl={hackerInfo.resumeUrl}
+                resumeFileName={hackerInfo.resumeFileName}
               />
 
               {/* Check-in History */}

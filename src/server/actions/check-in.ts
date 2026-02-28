@@ -187,6 +187,8 @@ export async function lookupRegistrationByQRCode(qrCode: string) {
         qrCode: registration.qrCode,
         isComplete: registration.isComplete,
         ageAtEvent: registration.ageAtEvent,
+        resumeUrl: registration.resumeUrl,
+        resumeFileName: registration.resumeFileName,
         hackerProfile: {
           firstName: registration.hackerProfile.firstName,
           lastName: registration.hackerProfile.lastName,
@@ -321,6 +323,50 @@ export async function recordCheckIn(data: {
   } catch (error) {
     console.error("Record check-in error:", error);
     return { error: "Failed to record check-in" };
+  }
+}
+
+export async function fetchStationCheckIns(stationId: string) {
+  try {
+    const authResult = await verifyAdmin();
+    if (authResult.error) {
+      return { error: authResult.error };
+    }
+
+    const checkIns = await db.query.checkIn.findMany({
+      where: eq(checkIn.eventStationId, stationId),
+      with: {
+        eventRegistration: {
+          with: {
+            hackerProfile: true,
+          },
+        },
+      },
+      orderBy: [desc(checkIn.checkedInAt)],
+    });
+
+    // Deduplicate by registration id, keeping the most recent check-in
+    const seen = new Set<string>();
+    const uniqueCheckIns = checkIns.filter((ci) => {
+      if (seen.has(ci.eventRegistrationId)) return false;
+      seen.add(ci.eventRegistrationId);
+      return true;
+    });
+
+    return {
+      checkIns: uniqueCheckIns.map((ci) => ({
+        id: ci.id,
+        checkedInAt: ci.checkedInAt,
+        notes: ci.notes,
+        hacker: {
+          firstName: ci.eventRegistration.hackerProfile.firstName,
+          lastName: ci.eventRegistration.hackerProfile.lastName,
+        },
+      })),
+    };
+  } catch (error) {
+    console.error("Fetch station check-ins error:", error);
+    return { error: "Failed to fetch station check-ins" };
   }
 }
 

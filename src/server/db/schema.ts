@@ -142,6 +142,8 @@ export const eventRegistration = pgTable(
     isComplete: boolean("is_complete")
       .$defaultFn(() => false)
       .notNull(),
+    resumeUrl: text("resume_url"),
+    resumeFileName: text("resume_file_name"),
     lockedAt: timestamp("locked_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .$defaultFn(() => new Date())

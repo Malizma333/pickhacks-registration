@@ -10,6 +10,7 @@ import {
   deleteStation,
   seedDefaultStations,
   getStationStats,
+  fetchStationCheckIns,
 } from "~/server/actions/check-in";
 import { COLORS } from "~/constants";
 
@@ -40,6 +41,28 @@ export default function StationsPage() {
   const [isCreating, setIsCreating] = useState(false);
   const [isSeeding, setIsSeeding] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  // Station detail modal state
+  const [selectedStation, setSelectedStation] = useState<Station | null>(null);
+  const [stationCheckIns, setStationCheckIns] = useState<
+    { id: string; checkedInAt: Date; notes: string | null; hacker: { firstName: string; lastName: string } }[]
+  >([]);
+  const [isLoadingCheckIns, setIsLoadingCheckIns] = useState(false);
+
+  const handleStationClick = async (station: Station) => {
+    setSelectedStation(station);
+    setIsLoadingCheckIns(true);
+    try {
+      const result = await fetchStationCheckIns(station.id);
+      if (result.checkIns) {
+        setStationCheckIns(result.checkIns);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoadingCheckIns(false);
+    }
+  };
 
   const loadData = async () => {
     try {
@@ -262,6 +285,7 @@ export default function StationsPage() {
                 key={station.id}
                 station={station}
                 stats={getStatsForStation(station.id)}
+                onClick={() => handleStationClick(station)}
                 onToggleActive={() => handleToggleActive(station.id)}
                 onDelete={() => handleDeleteStation(station.id)}
                 isDeleting={deletingId === station.id}
@@ -283,6 +307,7 @@ export default function StationsPage() {
                 key={station.id}
                 station={station}
                 stats={getStatsForStation(station.id)}
+                onClick={() => handleStationClick(station)}
                 onToggleActive={() => handleToggleActive(station.id)}
                 onDelete={() => handleDeleteStation(station.id)}
                 isDeleting={deletingId === station.id}
@@ -304,6 +329,7 @@ export default function StationsPage() {
                 key={station.id}
                 station={station}
                 stats={getStatsForStation(station.id)}
+                onClick={() => handleStationClick(station)}
                 onToggleActive={() => handleToggleActive(station.id)}
                 onDelete={() => handleDeleteStation(station.id)}
                 isDeleting={deletingId === station.id}
@@ -325,11 +351,76 @@ export default function StationsPage() {
                 key={station.id}
                 station={station}
                 stats={getStatsForStation(station.id)}
+                onClick={() => handleStationClick(station)}
                 onToggleActive={() => handleToggleActive(station.id)}
                 onDelete={() => handleDeleteStation(station.id)}
                 isDeleting={deletingId === station.id}
               />
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Station Detail Modal */}
+      {selectedStation && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="w-full max-w-lg max-h-[80vh] flex flex-col rounded-xl bg-white shadow-xl">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">
+                  {selectedStation.name}
+                </h2>
+                <p className="text-sm text-gray-500">
+                  {stationCheckIns.length} checked-in hacker{stationCheckIns.length !== 1 ? "s" : ""}
+                </p>
+              </div>
+              <button
+                onClick={() => { setSelectedStation(null); setStationCheckIns([]); }}
+                className="rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              {isLoadingCheckIns ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="inline-block h-6 w-6 animate-spin rounded-full border-4 border-solid border-[#44ab48] border-r-transparent"></div>
+                  <span className="ml-3 text-gray-500">Loading...</span>
+                </div>
+              ) : stationCheckIns.length === 0 ? (
+                <div className="text-center py-12 text-gray-500">
+                  No one has checked in at this station yet.
+                </div>
+              ) : (
+                <ul className="divide-y divide-gray-100">
+                  {stationCheckIns.map((ci) => (
+                    <li key={ci.id} className="flex items-center justify-between py-3">
+                      <div>
+                        <p className="font-medium text-gray-900">
+                          {ci.hacker.firstName} {ci.hacker.lastName}
+                        </p>
+                        {ci.notes && (
+                          <p className="text-xs text-gray-500 mt-0.5">
+                            Note: {ci.notes}
+                          </p>
+                        )}
+                      </div>
+                      <span className="text-xs text-gray-400 whitespace-nowrap ml-4">
+                        {new Date(ci.checkedInAt).toLocaleTimeString([], {
+                          hour: "numeric",
+                          minute: "2-digit",
+                        })}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </div>
         </div>
       )}

@@ -243,6 +243,8 @@ export async function getRegistrationStatus() {
     return {
       registered: true,
       qrCode: registration.qrCode,
+      resumeUrl: registration.resumeUrl,
+      resumeFileName: registration.resumeFileName,
       registrationData: {
         profile: {
           firstName: profile.firstName,

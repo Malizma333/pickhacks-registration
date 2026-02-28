@@ -76,6 +76,8 @@ export interface HackerInfo {
   qrCode: string;
   isComplete: boolean;
   ageAtEvent: number;
+  resumeUrl?: string | null;
+  resumeFileName?: string | null;
   hackerProfile: HackerProfile;
   education?: Education;
   shipping?: Shipping;
@@ -94,6 +96,8 @@ export interface Registration {
   ageAtEvent: number;
   isComplete: boolean;
   createdAt: Date;
+  resumeUrl?: string | null;
+  resumeFileName?: string | null;
   hackerProfile: HackerProfile;
   education?: Education;
   shipping?: Shipping;

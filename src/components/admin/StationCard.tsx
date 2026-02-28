@@ -14,6 +14,7 @@ interface StationCardProps {
     totalCheckIns: number;
     uniqueHackers: number;
   };
+  onClick?: () => void;
   onToggleActive: () => void;
   onDelete: () => void;
   isDeleting?: boolean;
@@ -36,17 +37,19 @@ const stationTypeColors: Record<string, string> = {
 export function StationCard({
   station,
   stats,
+  onClick,
   onToggleActive,
   onDelete,
   isDeleting = false,
 }: StationCardProps) {
   return (
     <div
+      onClick={onClick}
       className={`rounded-lg border bg-white p-5 shadow-sm transition-all ${
         station.isActive
           ? "border-gray-200 hover:shadow-md"
           : "border-gray-200 bg-gray-50 opacity-60"
-      }`}
+      } ${onClick ? "cursor-pointer" : ""}`}
     >
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
@@ -97,7 +100,7 @@ export function StationCard({
       {/* Actions */}
       <div className="flex gap-2">
         <button
-          onClick={onToggleActive}
+          onClick={(e) => { e.stopPropagation(); onToggleActive(); }}
           className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
             station.isActive
               ? "bg-gray-100 text-gray-700 hover:bg-gray-200"
@@ -107,7 +110,7 @@ export function StationCard({
           {station.isActive ? "Deactivate" : "Activate"}
         </button>
         <button
-          onClick={onDelete}
+          onClick={(e) => { e.stopPropagation(); onDelete(); }}
           disabled={isDeleting || (stats && stats.totalCheckIns > 0)}
           className="rounded-lg px-3 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           title={

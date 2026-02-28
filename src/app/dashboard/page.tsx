@@ -4,45 +4,7 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import { ProtectedRoute } from "~/components/auth/ProtectedRoute";
 import { getRegistrationStatus } from "~/server/actions/registration";
-
-function ApplicationSubmitted() {
-  return (
-    <div className="mb-6 rounded-xl border border-gray-200 bg-white p-4 md:p-8 shadow-sm">
-      <div className="flex items-center gap-4">
-        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#44ab48]">
-          <svg
-            className="h-6 w-6 text-white"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M5 13l4 4L19 7"
-            />
-          </svg>
-        </div>
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">
-            Registration Submitted
-          </h1>
-          <p className="mt-1 text-gray-600">
-            Thank you for registering for PickHacks 2026! We&apos;ll email you
-            with updates and event details. In the mean time be sure to join our{" "}
-            <a
-              target="_blank"
-              href="https://discord.gg/QpTFVRNFkD"
-              className="text-[#44ab48] hover:underline"
-            >discord server</a>
-            .
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-}
+import { UploadButton, UploadDropzone } from "~/lib/uploadthing";
 
 function ApplicationInProgress() {
   return (
@@ -101,35 +63,116 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [noRegistration, setNoRegistration] = useState(false);
+  const [resumeUrl, setResumeUrl] = useState<string | null>(null);
+  const [resumeFileName, setResumeFileName] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchQRCode = async () => {
+    const fetchData = async () => {
       try {
         const status = await getRegistrationStatus();
         if (status.registered && status.qrCode) {
-          // Generate QR code URL from the QR code string stored in database
           const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(status.qrCode)}`;
           setQrCodeUrl(qrUrl);
+          setResumeUrl(status.resumeUrl ?? null);
+          setResumeFileName(status.resumeFileName ?? null);
         } else {
           setNoRegistration(true);
           setError("No registration found.");
         }
       } catch (error) {
-        console.error("Error fetching QR code:", error);
-        setError("Failed to load QR code.");
+        console.error("Error fetching data:", error);
+        setError("Failed to load data.");
       } finally {
         setLoading(false);
       }
     };
 
-    void fetchQRCode();
+    void fetchData();
   }, []);
 
   return (
     <ProtectedRoute requireEmailVerification={true}>
       <div className="mx-auto max-w-5xl px-4 py-6 md:px-8 md:py-12">
         {/* Status */}
-        {loading ? <ApplicationStatusSkeleton /> : noRegistration ? <ApplicationInProgress /> : <ApplicationSubmitted />}
+        {loading ? <ApplicationStatusSkeleton /> : noRegistration ? <ApplicationInProgress /> : null}
+
+        {/* Resume Upload Section */}
+        {!loading && !noRegistration && (
+          <div className="mb-6 rounded-xl border border-gray-200 bg-white p-4 md:p-8 shadow-sm">
+            <h2 className="mb-2 text-2xl font-bold text-gray-900">
+              Your Resume
+            </h2>
+            <p className="mb-6 text-gray-500">
+              Upload your resume so sponsors and recruiters can find you.
+              PDF format only, up to 4MB.
+            </p>
+
+            {resumeUrl ? (
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-green-100">
+                    <svg className="h-5 w-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900">{resumeFileName}</p>
+                    <p className="text-sm text-green-600">Uploaded successfully</p>
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <a
+                    href={resumeUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="rounded-lg border-2 border-[#44ab48] px-4 py-2 text-sm font-medium text-[#44ab48] transition hover:bg-[#e8f4e5]"
+                  >
+                    View Resume
+                  </a>
+                  <UploadButton
+                    endpoint="resumeUploader"
+                    onClientUploadComplete={(res) => {
+                      if (res?.[0]) {
+                        setResumeUrl(res[0].ufsUrl);
+                        setResumeFileName(res[0].name);
+                      }
+                    }}
+                    onUploadError={(error) => {
+                      console.error("Upload error:", error);
+                    }}
+                    appearance={{
+                      button: "bg-gray-100 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg hover:bg-gray-200 transition ut-uploading:bg-gray-300",
+                      allowedContent: "hidden",
+                    }}
+                    content={{
+                      button: "Replace",
+                    }}
+                  />
+                </div>
+              </div>
+            ) : (
+              <UploadDropzone
+                endpoint="resumeUploader"
+                onClientUploadComplete={(res) => {
+                  if (res?.[0]) {
+                    setResumeUrl(res[0].ufsUrl);
+                    setResumeFileName(res[0].name);
+                  }
+                }}
+                onUploadError={(error) => {
+                  console.error("Upload error:", error);
+                }}
+                appearance={{
+                  container: "border-2 border-dashed border-gray-300 rounded-xl p-8 cursor-pointer hover:border-[#44ab48] transition",
+                  uploadIcon: "text-gray-400",
+                  label: "text-gray-600",
+                  allowedContent: "text-gray-400 text-sm",
+                  button: "bg-[#44ab48] text-white font-medium px-6 py-2 rounded-lg hover:bg-[#3a9c3e] transition ut-uploading:bg-gray-400",
+                }}
+              />
+            )}
+          </div>
+        )}
 
         {/* QR Code Section */}
         <div className="rounded-xl border border-gray-200 bg-white p-4 md:p-8 shadow-sm">
