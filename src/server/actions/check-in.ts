@@ -2,7 +2,7 @@
 
 import { db } from "~/server/db";
 import { eventStation, checkIn, eventRegistration, hackerProfile } from "~/server/db/schema";
-import { eq, and, desc, sql, ilike, or } from "drizzle-orm";
+import { eq, and, desc, sql, ilike } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { DEFAULT_STATIONS } from "~/constants";
 import { verifyAdmin, verifyAdminWithActiveEvent } from "./shared";

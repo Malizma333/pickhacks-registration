@@ -11,7 +11,9 @@ import {
   sendInvite,
   respondToInvite,
   cancelInvite,
+  getTrackEligibility,
 } from "~/server/actions/teams";
+import { TRACKS } from "~/constants";
 
 type TeamStatus = Awaited<ReturnType<typeof getTeamStatus>>;
 
@@ -53,7 +55,7 @@ export default function TeamsPage() {
     );
   }
 
-  if (!status || !status.isCheckedIn) {
+  if (!status?.isCheckedIn) {
     return (
       <ProtectedRoute requireEmailVerification={true}>
         <div className="mx-auto max-w-3xl px-4 py-6 md:px-8 md:py-12">
@@ -173,6 +175,49 @@ function NoTeamView({
   );
 }
 
+function TrackSelector({
+  selectedTracks,
+  onToggle,
+  eligibleTracks,
+  disabled,
+}: {
+  selectedTracks: string[];
+  onToggle: (track: string) => void;
+  eligibleTracks: string[];
+  disabled?: boolean;
+}) {
+  const eligibleSet = new Set(eligibleTracks);
+
+  const visibleTracks = TRACKS.filter((track) => eligibleSet.has(track.value));
+
+  if (visibleTracks.length === 0) return null;
+
+  return (
+    <div>
+      <label className="block text-sm font-medium text-gray-700 mb-2">
+        Tracks
+      </label>
+      <div className="space-y-2">
+        {visibleTracks.map((track) => (
+          <label
+            key={track.value}
+            className="flex items-center gap-3 rounded-lg border border-gray-200 px-4 py-3 cursor-pointer hover:bg-gray-50 transition"
+          >
+            <input
+              type="checkbox"
+              checked={selectedTracks.includes(track.value)}
+              onChange={() => onToggle(track.value)}
+              disabled={disabled}
+              className="h-4 w-4 rounded border-gray-300 text-[#44ab48] focus:ring-[#44ab48]"
+            />
+            <span className="text-sm text-gray-900">{track.label}</span>
+          </label>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function CreateTeamForm({
   onUpdate,
   onError,
@@ -184,7 +229,26 @@ function CreateTeamForm({
 }) {
   const [name, setName] = useState("");
   const [projectName, setProjectName] = useState("");
+  const [selectedTracks, setSelectedTracks] = useState<string[]>([]);
+  const [eligibleTracks, setEligibleTracks] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    void (async () => {
+      const result = await getTrackEligibility();
+      if ("eligible" in result) {
+        setEligibleTracks(result.eligible ?? []);
+      }
+    })();
+  }, []);
+
+  const toggleTrack = (track: string) => {
+    setSelectedTracks((prev) =>
+      prev.includes(track)
+        ? prev.filter((t) => t !== track)
+        : [...prev, track],
+    );
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -195,6 +259,7 @@ function CreateTeamForm({
       const result = await createTeam({
         name: name.trim(),
         projectName: projectName.trim() || undefined,
+        tracks: selectedTracks.length > 0 ? selectedTracks : undefined,
       });
       if ("error" in result && result.error) {
         onError(result.error);
@@ -249,6 +314,12 @@ function CreateTeamForm({
             className="block w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-[#44ab48] focus:outline-none focus:ring-1 focus:ring-[#44ab48]"
           />
         </div>
+        <TrackSelector
+          selectedTracks={selectedTracks}
+          onToggle={toggleTrack}
+          eligibleTracks={eligibleTracks}
+          disabled={isSubmitting}
+        />
         <button
           type="submit"
           disabled={isSubmitting || !name.trim()}
@@ -347,6 +418,7 @@ function TeamView({
     name: string;
     projectName: string | null;
     captainRegistrationId: string;
+    tracks: string[];
     members: {
       id: string;
       registrationId: string;
@@ -501,7 +573,7 @@ function TeamInfoCard({
   onError,
   onSuccess,
 }: {
-  team: { id: string; name: string; projectName: string | null };
+  team: { id: string; name: string; projectName: string | null; tracks: string[] };
   isCaptain: boolean;
   onUpdate: () => void;
   onError: (msg: string) => void;
@@ -510,7 +582,28 @@ function TeamInfoCard({
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(team.name);
   const [editProject, setEditProject] = useState(team.projectName ?? "");
+  const [editTracks, setEditTracks] = useState<string[]>(team.tracks);
+  const [eligibleTracks, setEligibleTracks] = useState<string[]>([]);
   const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    if (isEditing) {
+      void (async () => {
+        const result = await getTrackEligibility(team.id);
+        if ("eligible" in result) {
+          setEligibleTracks(result.eligible ?? []);
+        }
+      })();
+    }
+  }, [isEditing, team.id]);
+
+  const toggleTrack = (track: string) => {
+    setEditTracks((prev) =>
+      prev.includes(track)
+        ? prev.filter((t) => t !== track)
+        : [...prev, track],
+    );
+  };
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -519,6 +612,7 @@ function TeamInfoCard({
         teamId: team.id,
         name: editName,
         projectName: editProject || null,
+        tracks: editTracks,
       });
       if ("error" in result && result.error) {
         onError(result.error);
@@ -561,6 +655,12 @@ function TeamInfoCard({
               className="block w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-[#44ab48] focus:outline-none focus:ring-1 focus:ring-[#44ab48]"
             />
           </div>
+          <TrackSelector
+            selectedTracks={editTracks}
+            onToggle={toggleTrack}
+            eligibleTracks={eligibleTracks}
+            disabled={isSaving}
+          />
           <div className="flex gap-2">
             <button
               onClick={handleSave}
@@ -574,6 +674,7 @@ function TeamInfoCard({
                 setIsEditing(false);
                 setEditName(team.name);
                 setEditProject(team.projectName ?? "");
+                setEditTracks(team.tracks);
               }}
               className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
             >
@@ -589,6 +690,21 @@ function TeamInfoCard({
               <p className="mt-1 text-sm text-gray-500">
                 Project: {team.projectName}
               </p>
+            )}
+            {team.tracks.length > 0 && (
+              <div className="mt-3 flex flex-wrap gap-2">
+                {team.tracks.map((t) => {
+                  const def = TRACKS.find((tr) => tr.value === t);
+                  return (
+                    <span
+                      key={t}
+                      className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-700"
+                    >
+                      {def?.label ?? t}
+                    </span>
+                  );
+                })}
+              </div>
             )}
           </div>
           {isCaptain && (

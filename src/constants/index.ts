@@ -68,3 +68,25 @@ export const DEFAULT_STATIONS = [
   { name: "Lunch", stationType: "food", maxVisitsPerHacker: 1 },
   { name: "Dinner", stationType: "food", maxVisitsPerHacker: 1 },
 ] as const;
+
+// ==================== Competition Tracks ====================
+export const MST_SCHOOL_NAME =
+  "Missouri University of Science and Technology";
+
+export const TRACKS = [
+  { value: "best_use_of_ai", label: "Best Use of AI", conditional: null },
+  { value: "best_security", label: "Best Security", conditional: null },
+  {
+    value: "best_solo",
+    label: "Best Solo",
+    conditional: "solo" as const,
+  },
+  { value: "best_beginner", label: "Best Beginner", conditional: null },
+  {
+    value: "tip_crystal_ball",
+    label: "TIP Crystal Ball",
+    conditional: "mst_only" as const,
+  },
+] as const;
+
+export type TrackValue = (typeof TRACKS)[number]["value"];

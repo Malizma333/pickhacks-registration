@@ -4,17 +4,21 @@ import { db } from "~/server/db";
 import {
   hackerProfile,
   eventRegistration,
+  eventRegistrationEducation,
   eventStation,
   checkIn,
   team,
   teamMember,
   teamInvite,
+  teamTrack,
 } from "~/server/db/schema";
 import { eq, and, inArray } from "drizzle-orm";
 import { auth } from "~/server/auth";
 import { headers } from "next/headers";
 import { nanoid } from "nanoid";
 import { getActiveEvent } from "./shared";
+import { TRACKS, MST_SCHOOL_NAME } from "~/constants";
+import type { TrackValue } from "~/constants";
 
 // ============ Helper ============
 
@@ -89,6 +93,94 @@ async function getCurrentUserRegistration() {
   return { session, profile, registration, activeEvent, isCheckedIn };
 }
 
+// ============ Track Helpers ============
+
+async function getEligibleTracks(teamId: string): Promise<Set<TrackValue>> {
+  const members = await db.query.teamMember.findMany({
+    where: eq(teamMember.teamId, teamId),
+    with: {
+      registration: {
+        with: {
+          education: {
+            with: {
+              school: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  const eligible = new Set<TrackValue>();
+
+  for (const track of TRACKS) {
+    if (track.conditional === null) {
+      eligible.add(track.value);
+    }
+  }
+
+  if (members.length === 1) {
+    eligible.add("best_solo");
+  }
+
+  const allFromMST =
+    members.length > 0 &&
+    members.every((m) => m.registration.education?.school?.name === MST_SCHOOL_NAME);
+  if (allFromMST) {
+    eligible.add("tip_crystal_ball");
+  }
+
+  return eligible;
+}
+
+function validateTrackSelection(
+  requestedTracks: string[],
+  eligibleTracks: Set<TrackValue>,
+): { valid: TrackValue[] } | { error: string } {
+  const validTrackValues = new Set<string>(TRACKS.map((t) => t.value));
+
+  for (const t of requestedTracks) {
+    if (!validTrackValues.has(t)) {
+      return { error: `Invalid track: ${t}` };
+    }
+    if (!eligibleTracks.has(t as TrackValue)) {
+      const trackDef = TRACKS.find((tr) => tr.value === t);
+      return {
+        error: `Your team is not eligible for "${trackDef?.label ?? t}"`,
+      };
+    }
+  }
+
+  const unique = [...new Set(requestedTracks)] as TrackValue[];
+  return { valid: unique };
+}
+
+async function pruneIneligibleTracks(teamId: string): Promise<void> {
+  const eligible = await getEligibleTracks(teamId);
+
+  const currentTracks = await db.query.teamTrack.findMany({
+    where: eq(teamTrack.teamId, teamId),
+  });
+
+  const toRemove = currentTracks.filter(
+    (ct) => !eligible.has(ct.track as TrackValue),
+  );
+
+  if (toRemove.length > 0) {
+    await db
+      .delete(teamTrack)
+      .where(
+        and(
+          eq(teamTrack.teamId, teamId),
+          inArray(
+            teamTrack.track,
+            toRemove.map((t) => t.track),
+          ),
+        ),
+      );
+  }
+}
+
 // ============ Server Actions ============
 
 export async function getTeamStatus() {
@@ -148,6 +240,7 @@ export async function getTeamStatus() {
                 },
               },
             },
+            tracks: true,
           },
         },
       },
@@ -161,6 +254,7 @@ export async function getTeamStatus() {
         name: t.name,
         projectName: t.projectName,
         captainRegistrationId: t.captainRegistrationId,
+        tracks: t.tracks.map((tr) => tr.track),
         members: t.members.map((m) => ({
           id: m.id,
           registrationId: m.registrationId,
@@ -223,9 +317,11 @@ export async function getTeamStatus() {
 export async function createTeam({
   name,
   projectName,
+  tracks: requestedTracks,
 }: {
   name: string;
   projectName?: string;
+  tracks?: string[];
 }) {
   try {
     const ctx = await getCurrentUserRegistration();
@@ -256,7 +352,7 @@ export async function createTeam({
       id: teamId,
       eventId: activeEvent.id,
       name: name.trim(),
-      projectName: projectName?.trim() || null,
+      projectName: projectName?.trim() ?? null,
       captainRegistrationId: registration.id,
     });
 
@@ -265,6 +361,24 @@ export async function createTeam({
       teamId,
       registrationId: registration.id,
     });
+
+    // Handle tracks
+    if (requestedTracks && requestedTracks.length > 0) {
+      const eligible = await getEligibleTracks(teamId);
+      const validation = validateTrackSelection(requestedTracks, eligible);
+      if ("error" in validation) {
+        return { error: validation.error };
+      }
+      if (validation.valid.length > 0) {
+        await db.insert(teamTrack).values(
+          validation.valid.map((track) => ({
+            id: nanoid(),
+            teamId,
+            track,
+          })),
+        );
+      }
+    }
 
     return { success: true as const };
   } catch (error) {
@@ -277,10 +391,12 @@ export async function updateTeam({
   teamId,
   name,
   projectName,
+  tracks: requestedTracks,
 }: {
   teamId: string;
   name: string;
   projectName: string | null;
+  tracks?: string[];
 }) {
   try {
     const ctx = await getCurrentUserRegistration();
@@ -310,9 +426,31 @@ export async function updateTeam({
       .update(team)
       .set({
         name: name.trim(),
-        projectName: projectName?.trim() || null,
+        projectName: projectName?.trim() ?? null,
       })
       .where(eq(team.id, teamId));
+
+    // Replace tracks
+    if (requestedTracks !== undefined) {
+      await db.delete(teamTrack).where(eq(teamTrack.teamId, teamId));
+
+      if (requestedTracks.length > 0) {
+        const eligible = await getEligibleTracks(teamId);
+        const validation = validateTrackSelection(requestedTracks, eligible);
+        if ("error" in validation) {
+          return { error: validation.error };
+        }
+        if (validation.valid.length > 0) {
+          await db.insert(teamTrack).values(
+            validation.valid.map((track) => ({
+              id: nanoid(),
+              teamId,
+              track,
+            })),
+          );
+        }
+      }
+    }
 
     return { success: true as const };
   } catch (error) {
@@ -363,17 +501,22 @@ export async function leaveTeam(teamId: string) {
     );
 
     if (remainingMembers.length === 0) {
-      // Last member left — delete the team (cascade deletes invites)
+      // Last member left — delete the team (cascade deletes invites + tracks)
       await db.delete(team).where(eq(team.id, teamId));
-    } else if (existingTeam.captainRegistrationId === registration.id) {
-      // Captain left — transfer to random remaining member
-      const randomIndex = Math.floor(Math.random() * remainingMembers.length);
-      const newCaptain = remainingMembers[randomIndex]!;
+    } else {
+      if (existingTeam.captainRegistrationId === registration.id) {
+        // Captain left — transfer to random remaining member
+        const randomIndex = Math.floor(Math.random() * remainingMembers.length);
+        const newCaptain = remainingMembers[randomIndex]!;
 
-      await db
-        .update(team)
-        .set({ captainRegistrationId: newCaptain.registrationId })
-        .where(eq(team.id, teamId));
+        await db
+          .update(team)
+          .set({ captainRegistrationId: newCaptain.registrationId })
+          .where(eq(team.id, teamId));
+      }
+
+      // Prune tracks that may no longer be valid
+      await pruneIneligibleTracks(teamId);
     }
 
     return { success: true as const };
@@ -603,6 +746,9 @@ export async function respondToInvite({
       .delete(teamInvite)
       .where(eq(teamInvite.registrationId, registration.id));
 
+    // Prune tracks that may no longer be valid with new team composition
+    await pruneIneligibleTracks(invite.teamId);
+
     return { success: true as const };
   } catch (error) {
     console.error("Respond to invite error:", error);
@@ -640,5 +786,45 @@ export async function cancelInvite(inviteId: string) {
   } catch (error) {
     console.error("Cancel invite error:", error);
     return { error: "Failed to cancel invite" };
+  }
+}
+
+export async function getTrackEligibility(teamId?: string) {
+  try {
+    const ctx = await getCurrentUserRegistration();
+    if ("error" in ctx) {
+      return { error: ctx.error };
+    }
+
+    if (teamId) {
+      // Existing team: check based on current composition
+      const eligible = await getEligibleTracks(teamId);
+      return { eligible: Array.from(eligible) };
+    }
+
+    // No team yet (create form): solo creator
+    // Solo is always eligible at creation, check MST status for TIP Crystal Ball
+    const education = await db.query.eventRegistrationEducation.findFirst({
+      where: eq(
+        eventRegistrationEducation.eventRegistrationId,
+        ctx.registration.id,
+      ),
+      with: { school: true },
+    });
+
+    const eligible: TrackValue[] = [
+      "best_use_of_ai",
+      "best_security",
+      "best_beginner",
+      "best_solo",
+    ];
+    if (education?.school?.name === MST_SCHOOL_NAME) {
+      eligible.push("tip_crystal_ball");
+    }
+
+    return { eligible };
+  } catch (error) {
+    console.error("Get track eligibility error:", error);
+    return { error: "Failed to check track eligibility" };
   }
 }

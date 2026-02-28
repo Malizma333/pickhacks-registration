@@ -459,6 +459,27 @@ export const teamInvite = pgTable(
   ],
 );
 
+// Team Track - tracks/categories a team is competing in
+export const teamTrack = pgTable(
+  "team_track",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    teamId: text("team_id")
+      .notNull()
+      .references(() => team.id, { onDelete: "cascade" }),
+    track: text("track").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .$defaultFn(() => new Date())
+      .notNull(),
+  },
+  (t) => [
+    // A team can only select each track once
+    unique("team_track_unique").on(t.teamId, t.track),
+  ],
+);
+
 // ==================== Relations ====================
 
 export const userRelations = relations(user, ({ many, one }) => ({
@@ -646,6 +667,7 @@ export const teamRelations = relations(team, ({ one, many }) => ({
   }),
   members: many(teamMember),
   invites: many(teamInvite),
+  tracks: many(teamTrack),
 }));
 
 export const teamMemberRelations = relations(teamMember, ({ one }) => ({
@@ -674,5 +696,12 @@ export const teamInviteRelations = relations(teamInvite, ({ one }) => ({
     fields: [teamInvite.invitedByRegistrationId],
     references: [eventRegistration.id],
     relationName: "inviteSender",
+  }),
+}));
+
+export const teamTrackRelations = relations(teamTrack, ({ one }) => ({
+  team: one(team, {
+    fields: [teamTrack.teamId],
+    references: [team.id],
   }),
 }));
