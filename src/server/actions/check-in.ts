@@ -1,8 +1,8 @@
 "use server";
 
 import { db } from "~/server/db";
-import { eventStation, checkIn, eventRegistration } from "~/server/db/schema";
-import { eq, and, desc, sql } from "drizzle-orm";
+import { eventStation, checkIn, eventRegistration, hackerProfile } from "~/server/db/schema";
+import { eq, and, desc, sql, ilike, or } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { DEFAULT_STATIONS } from "~/constants";
 import { verifyAdmin, verifyAdminWithActiveEvent } from "./shared";
@@ -237,6 +237,135 @@ export async function lookupRegistrationByQRCode(qrCode: string) {
   } catch (error) {
     console.error("Lookup registration error:", error);
     return { error: "Failed to look up registration" };
+  }
+}
+
+export async function searchRegistrationsByName(query: string) {
+  try {
+    const result = await verifyAdminWithActiveEvent();
+    if (result.error) {
+      return { error: result.error };
+    }
+
+    const trimmed = query.trim();
+    if (trimmed.length < 2) {
+      return { registrations: [] };
+    }
+
+    const pattern = `%${trimmed}%`;
+    const parts = trimmed.split(/\s+/);
+
+    // Build search conditions: match full query against first or last name,
+    // or if two+ words, match first word against firstName and last word against lastName
+    const searchConditions = [
+      ilike(hackerProfile.firstName, pattern),
+      ilike(hackerProfile.lastName, pattern),
+    ];
+
+    if (parts.length >= 2) {
+      searchConditions.push(
+        and(
+          ilike(hackerProfile.firstName, `%${parts[0]}%`),
+          ilike(hackerProfile.lastName, `%${parts[parts.length - 1]}%`),
+        )!,
+      );
+    }
+
+    const registrations = await db.query.eventRegistration.findMany({
+      where: and(
+        eq(eventRegistration.eventId, result.activeEvent!.id),
+      ),
+      with: {
+        hackerProfile: true,
+        education: { with: { school: true } },
+        shipping: true,
+        demographics: true,
+        dietaryRestrictions: {
+          with: {
+            dietaryRestriction: true,
+          },
+        },
+        checkIns: {
+          with: {
+            eventStation: true,
+          },
+          orderBy: [desc(checkIn.checkedInAt)],
+        },
+      },
+    });
+
+    // Filter in application layer since Drizzle relational queries
+    // don't support filtering by related table columns directly
+    const filtered = registrations.filter((reg) => {
+      const first = reg.hackerProfile.firstName.toLowerCase();
+      const last = reg.hackerProfile.lastName.toLowerCase();
+      const q = trimmed.toLowerCase();
+
+      if (first.includes(q) || last.includes(q)) return true;
+      if (parts.length >= 2) {
+        const firstPart = parts[0]!.toLowerCase();
+        const lastPart = parts[parts.length - 1]!.toLowerCase();
+        if (first.includes(firstPart) && last.includes(lastPart)) return true;
+      }
+      return false;
+    });
+
+    return {
+      registrations: filtered.slice(0, 20).map((registration) => ({
+        id: registration.id,
+        qrCode: registration.qrCode,
+        isComplete: registration.isComplete,
+        ageAtEvent: registration.ageAtEvent,
+        resumeUrl: registration.resumeUrl,
+        resumeFileName: registration.resumeFileName,
+        hackerProfile: {
+          firstName: registration.hackerProfile.firstName,
+          lastName: registration.hackerProfile.lastName,
+          phoneNumber: registration.hackerProfile.phoneNumber,
+          linkedinUrl: registration.hackerProfile.linkedinUrl,
+        },
+        education: registration.education
+          ? {
+              school: registration.education.school
+                ? { name: registration.education.school.name }
+                : undefined,
+              levelOfStudy: registration.education.levelOfStudy,
+              major: registration.education.major,
+              graduationYear: registration.education.graduationYear,
+            }
+          : undefined,
+        shipping: registration.shipping
+          ? {
+              addressLine1: registration.shipping.addressLine1,
+              addressLine2: registration.shipping.addressLine2,
+              city: registration.shipping.city,
+              state: registration.shipping.state,
+              country: registration.shipping.country,
+              postalCode: registration.shipping.postalCode,
+              tshirtSize: registration.shipping.tshirtSize,
+            }
+          : undefined,
+        demographics: registration.demographics
+          ? {
+              countryOfResidence: registration.demographics.countryOfResidence,
+            }
+          : undefined,
+        dietaryRestrictions: registration.dietaryRestrictions.map((dr) => ({
+          name: dr.dietaryRestriction.name,
+          allergyDetails: dr.allergyDetails,
+        })),
+        checkIns: registration.checkIns.map((ci) => ({
+          id: ci.id,
+          stationId: ci.eventStationId,
+          stationName: ci.eventStation.name,
+          stationType: ci.eventStation.stationType,
+          checkedInAt: ci.checkedInAt,
+        })),
+      })),
+    };
+  } catch (error) {
+    console.error("Search registrations error:", error);
+    return { error: "Failed to search registrations" };
   }
 }
 

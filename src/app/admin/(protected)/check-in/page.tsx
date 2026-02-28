@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { QRScanner } from "~/components/admin/QRScanner";
-import { ManualQRInput } from "~/components/admin/ManualQRInput";
 import { StationSelector } from "~/components/admin/StationSelector";
 import { HackerInfoCard } from "~/components/admin/HackerInfoCard";
 import { CheckInHistoryList } from "~/components/admin/CheckInHistoryList";
@@ -14,6 +13,7 @@ import { Card } from "~/components/ui/Card";
 import {
   fetchEventStations,
   lookupRegistrationByQRCode,
+  searchRegistrationsByName,
   recordCheckIn,
 } from "~/server/actions/check-in";
 import type { Station, HackerInfo } from "~/types/admin";
@@ -30,6 +30,12 @@ export default function CheckInPage() {
   const [isCheckingIn, setIsCheckingIn] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  // Name search state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<HackerInfo[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Duplicate warning modal state
   const [showDuplicateModal, setShowDuplicateModal] = useState(false);
@@ -63,15 +69,53 @@ export default function CheckInPage() {
     void loadStations();
   }, []);
 
+  // Debounced name search
+  useEffect(() => {
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    if (searchQuery.trim().length < 2) {
+      setSearchResults([]);
+      setIsSearching(false);
+      return;
+    }
+
+    setIsSearching(true);
+    searchTimeoutRef.current = setTimeout(() => {
+      void (async () => {
+        try {
+          const result = await searchRegistrationsByName(searchQuery);
+          if (result.error) {
+            setError(result.error);
+            setSearchResults([]);
+          } else if (result.registrations) {
+            setSearchResults(result.registrations as HackerInfo[]);
+          }
+        } catch (err) {
+          console.error(err);
+          setSearchResults([]);
+        } finally {
+          setIsSearching(false);
+        }
+      })();
+    }, 300);
+
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, [searchQuery]);
+
   // Save station selection to localStorage
   const handleStationSelect = (stationId: string) => {
     setSelectedStationId(stationId);
     localStorage.setItem(STORAGE_KEY, stationId);
-    // Clear any previous hacker info when changing stations
     resetState();
   };
 
-  // Reset state for new scan
+  // Reset state
   const resetState = () => {
     setHackerInfo(null);
     setError(null);
@@ -80,9 +124,11 @@ export default function CheckInPage() {
     setDuplicateInfo(null);
   };
 
-  // Handle QR code scan or manual entry
+  // Handle QR code scan
   const handleQRCode = useCallback(async (qrCode: string) => {
     resetState();
+    setSearchQuery("");
+    setSearchResults([]);
     setIsLookingUp(true);
 
     try {
@@ -101,6 +147,15 @@ export default function CheckInPage() {
       setIsLookingUp(false);
     }
   }, []);
+
+  // Select a hacker from search results
+  const handleSelectHacker = (hacker: HackerInfo) => {
+    setHackerInfo(hacker);
+    setSearchQuery("");
+    setSearchResults([]);
+    setError(null);
+    setSuccessMessage(null);
+  };
 
   // Handle check-in
   const handleCheckIn = async (overrideDuplicate = false, notes?: string) => {
@@ -166,7 +221,7 @@ export default function CheckInPage() {
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Check-in</h1>
         <p className="mt-1 text-gray-600">
-          Scan QR codes to check in attendees at stations
+          Scan a QR code or search by name to check in attendees
         </p>
       </div>
 
@@ -182,8 +237,9 @@ export default function CheckInPage() {
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Left: Scanner */}
+        {/* Left: Scanner + Name Search */}
         <div className="space-y-4">
+          {/* QR Scanner */}
           <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">
               QR Scanner
@@ -195,12 +251,79 @@ export default function CheckInPage() {
             />
           </div>
 
-          {/* Manual Entry */}
+          {/* Name Search */}
           <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
             <h2 className="text-sm font-medium text-gray-700 mb-3">
-              Manual Entry
+              Search by Name
             </h2>
-            <ManualQRInput onSubmit={handleQRCode} isLoading={isLookingUp} />
+            <div className="relative">
+              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Type a name to search..."
+                className="block w-full rounded-lg border border-gray-300 bg-white py-2.5 pl-10 pr-4 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                disabled={!selectedStationId}
+              />
+              {isSearching && (
+                <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                  <LoadingSpinner size="sm" />
+                </div>
+              )}
+            </div>
+
+            {/* Search Results */}
+            {searchQuery.trim().length >= 2 && !hackerInfo && (
+              <div className="mt-2">
+                {isSearching ? (
+                  <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-center text-sm text-gray-500">
+                    Searching...
+                  </div>
+                ) : searchResults.length > 0 ? (
+                  <div className="rounded-lg border border-gray-200 bg-white divide-y divide-gray-100 max-h-64 overflow-y-auto">
+                    {searchResults.map((reg) => (
+                      <button
+                        key={reg.id}
+                        onClick={() => handleSelectHacker(reg)}
+                        className="flex w-full items-center justify-between px-4 py-3 text-left hover:bg-gray-50 transition-colors"
+                      >
+                        <div>
+                          <p className="font-medium text-gray-900">
+                            {reg.hackerProfile.firstName} {reg.hackerProfile.lastName}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            {reg.education?.school?.name ?? "No school listed"}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {reg.isComplete ? (
+                            <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium text-green-700 bg-green-100 rounded-full">
+                              Registered
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium text-yellow-700 bg-yellow-100 rounded-full">
+                              Incomplete
+                            </span>
+                          )}
+                          <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-center text-sm text-gray-500">
+                    No attendees found for &ldquo;{searchQuery}&rdquo;
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
@@ -225,6 +348,18 @@ export default function CheckInPage() {
           {/* Hacker Info Card */}
           {hackerInfo && !isLookingUp && !successMessage && (
             <>
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-gray-900">
+                  Attendee Details
+                </h2>
+                <button
+                  onClick={resetState}
+                  className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+                >
+                  Clear
+                </button>
+              </div>
+
               <HackerInfoCard
                 hacker={hackerInfo.hackerProfile}
                 ageAtEvent={hackerInfo.ageAtEvent}
@@ -283,8 +418,8 @@ export default function CheckInPage() {
               </svg>
               <p className="text-gray-500">
                 {selectedStationId
-                  ? "Scan a QR code to view hacker info"
-                  : "Select a station to start scanning"}
+                  ? "Scan a QR code or search by name"
+                  : "Select a station to start"}
               </p>
             </div>
           )}
