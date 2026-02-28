@@ -386,6 +386,79 @@ export const checkIn = pgTable("check_in", {
   notes: text("notes"), // Optional notes (admin override reason, etc.)
 });
 
+// ==================== Teams ====================
+
+// Team - groups of hackers for a specific event
+export const team = pgTable("team", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  eventId: text("event_id")
+    .notNull()
+    .references(() => event.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  projectName: text("project_name"),
+  captainRegistrationId: text("captain_registration_id")
+    .notNull()
+    .references(() => eventRegistration.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .$defaultFn(() => new Date())
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .$defaultFn(() => new Date())
+    .$onUpdate(() => new Date())
+    .notNull(),
+});
+
+// Team Member - junction table linking registrations to teams
+export const teamMember = pgTable(
+  "team_member",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    teamId: text("team_id")
+      .notNull()
+      .references(() => team.id, { onDelete: "cascade" }),
+    registrationId: text("registration_id")
+      .notNull()
+      .references(() => eventRegistration.id, { onDelete: "cascade" }),
+    joinedAt: timestamp("joined_at", { withTimezone: true })
+      .$defaultFn(() => new Date())
+      .notNull(),
+  },
+  (t) => [
+    // Each registration can only be on one team
+    unique("team_member_registration_unique").on(t.registrationId),
+  ],
+);
+
+// Team Invite - pending invitations to join a team
+export const teamInvite = pgTable(
+  "team_invite",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    teamId: text("team_id")
+      .notNull()
+      .references(() => team.id, { onDelete: "cascade" }),
+    registrationId: text("registration_id")
+      .notNull()
+      .references(() => eventRegistration.id, { onDelete: "cascade" }),
+    invitedByRegistrationId: text("invited_by_registration_id")
+      .notNull()
+      .references(() => eventRegistration.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .$defaultFn(() => new Date())
+      .notNull(),
+  },
+  (t) => [
+    // Prevent duplicate invites from the same team to the same person
+    unique("team_invite_unique").on(t.teamId, t.registrationId),
+  ],
+);
+
 // ==================== Relations ====================
 
 export const userRelations = relations(user, ({ many, one }) => ({
@@ -408,6 +481,7 @@ export const sessionRelations = relations(session, ({ one }) => ({
 export const eventRelations = relations(event, ({ many }) => ({
   registrations: many(eventRegistration),
   stations: many(eventStation),
+  teams: many(team),
 }));
 
 export const hackerProfileRelations = relations(
@@ -451,6 +525,10 @@ export const eventRegistrationRelations = relations(
     raceEthnicities: many(eventRegistrationRaceEthnicity),
     dietaryRestrictions: many(eventRegistrationDietaryRestrictions),
     checkIns: many(checkIn),
+    teamAsCaptain: many(team, { relationName: "teamCaptain" }),
+    teamMemberships: many(teamMember, { relationName: "teamMembership" }),
+    teamInvitesReceived: many(teamInvite, { relationName: "inviteRecipient" }),
+    teamInvitesSent: many(teamInvite, { relationName: "inviteSender" }),
   }),
 );
 
@@ -553,5 +631,48 @@ export const checkInRelations = relations(checkIn, ({ one }) => ({
   eventStation: one(eventStation, {
     fields: [checkIn.eventStationId],
     references: [eventStation.id],
+  }),
+}));
+
+export const teamRelations = relations(team, ({ one, many }) => ({
+  event: one(event, {
+    fields: [team.eventId],
+    references: [event.id],
+  }),
+  captainRegistration: one(eventRegistration, {
+    fields: [team.captainRegistrationId],
+    references: [eventRegistration.id],
+    relationName: "teamCaptain",
+  }),
+  members: many(teamMember),
+  invites: many(teamInvite),
+}));
+
+export const teamMemberRelations = relations(teamMember, ({ one }) => ({
+  team: one(team, {
+    fields: [teamMember.teamId],
+    references: [team.id],
+  }),
+  registration: one(eventRegistration, {
+    fields: [teamMember.registrationId],
+    references: [eventRegistration.id],
+    relationName: "teamMembership",
+  }),
+}));
+
+export const teamInviteRelations = relations(teamInvite, ({ one }) => ({
+  team: one(team, {
+    fields: [teamInvite.teamId],
+    references: [team.id],
+  }),
+  registration: one(eventRegistration, {
+    fields: [teamInvite.registrationId],
+    references: [eventRegistration.id],
+    relationName: "inviteRecipient",
+  }),
+  invitedByRegistration: one(eventRegistration, {
+    fields: [teamInvite.invitedByRegistrationId],
+    references: [eventRegistration.id],
+    relationName: "inviteSender",
   }),
 }));
