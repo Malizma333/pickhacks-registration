@@ -812,12 +812,11 @@ export async function getTrackEligibility(teamId?: string) {
       with: { school: true },
     });
 
-    const eligible: TrackValue[] = [
-      "best_use_of_ai",
-      "best_security",
-      "best_beginner",
-      "best_solo",
-    ];
+    // At creation, team is solo (1 member), so all unconditional + solo are eligible
+    const eligible: TrackValue[] = TRACKS.filter(
+      (t) => t.conditional === null || t.conditional === "solo",
+    ).map((t) => t.value);
+
     if (education?.school?.name === MST_SCHOOL_NAME) {
       eligible.push("tip_crystal_ball");
     }
