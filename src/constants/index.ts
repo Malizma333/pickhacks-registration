@@ -87,6 +87,12 @@ export const TRACKS = [
     label: "TIP Crystal Ball",
     conditional: "mst_only" as const,
   },
+  { value: "mlh_gemini_api", label: "[MLH] Best Use of Gemini API", conditional: null },
+  { value: "mlh_elevenlabs", label: "[MLH] Best Use of ElevenLabs", conditional: null },
+  { value: "mlh_solana", label: "[MLH] Best Use of Solana", conditional: null },
+  { value: "mlh_vultr", label: "[MLH] Best Use of Vultr", conditional: null },
+  { value: "mlh_auth0", label: "[MLH] Best Use of Auth0", conditional: null },
+  { value: "mlh_mongodb_atlas", label: "[MLH] Best Use of MongoDB Atlas", conditional: null },
 ] as const;
 
 export type TrackValue = (typeof TRACKS)[number]["value"];
