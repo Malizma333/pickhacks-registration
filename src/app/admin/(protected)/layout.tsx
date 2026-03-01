@@ -74,6 +74,12 @@ export default function AdminLayout({
               >
                 Stations
               </a>
+              <a
+                href="/admin/teams"
+                className="text-sm font-medium text-gray-700 hover:text-[#44ab48]"
+              >
+                Teams
+              </a>
             </nav>
           </div>
         </div>

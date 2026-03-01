@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "~/server/db";
-import { event as eventTable, eventRegistration, user as userTable } from "~/server/db/schema";
+import { event as eventTable, eventRegistration, user as userTable, team } from "~/server/db/schema";
 import { eq, desc } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import {
@@ -240,5 +240,63 @@ export async function fetchRegistrationStats(eventId?: string) {
   } catch (error) {
     console.error("Get registration stats error:", error);
     return { error: "Failed to fetch stats" };
+  }
+}
+
+export async function fetchAllTeams() {
+  try {
+    const result = await verifyAdminWithActiveEvent();
+    if (result.error) {
+      return { error: result.error };
+    }
+
+    const allTeams = await db.query.team.findMany({
+      where: eq(team.eventId, result.activeEvent!.id),
+      with: {
+        members: {
+          with: {
+            registration: {
+              with: {
+                hackerProfile: true,
+              },
+            },
+          },
+        },
+        tracks: true,
+      },
+      orderBy: [desc(team.createdAt)],
+    });
+
+    // Clean up orphaned teams with 0 members
+    const emptyTeams = allTeams.filter((t) => t.members.length === 0);
+    if (emptyTeams.length > 0) {
+      for (const t of emptyTeams) {
+        await db.delete(team).where(eq(team.id, t.id));
+      }
+    }
+
+    const teams = allTeams.filter((t) => t.members.length > 0);
+
+    return {
+      success: true,
+      teams: teams.map((t) => ({
+        id: t.id,
+        name: t.name,
+        projectName: t.projectName,
+        devpostUrl: t.devpostUrl,
+        captainRegistrationId: t.captainRegistrationId,
+        createdAt: t.createdAt,
+        tracks: t.tracks.map((tr) => tr.track),
+        members: t.members.map((m) => ({
+          registrationId: m.registrationId,
+          firstName: m.registration.hackerProfile.firstName,
+          lastName: m.registration.hackerProfile.lastName,
+          isCaptain: m.registrationId === t.captainRegistrationId,
+        })),
+      })),
+    };
+  } catch (error) {
+    console.error("Fetch all teams error:", error);
+    return { error: "Failed to fetch teams" };
   }
 }

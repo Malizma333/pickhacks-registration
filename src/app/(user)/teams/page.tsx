@@ -229,6 +229,7 @@ function CreateTeamForm({
 }) {
   const [name, setName] = useState("");
   const [projectName, setProjectName] = useState("");
+  const [devpostUrl, setDevpostUrl] = useState("");
   const [selectedTracks, setSelectedTracks] = useState<string[]>([]);
   const [eligibleTracks, setEligibleTracks] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -259,6 +260,7 @@ function CreateTeamForm({
       const result = await createTeam({
         name: name.trim(),
         projectName: projectName.trim() || undefined,
+        devpostUrl: devpostUrl.trim(),
         tracks: selectedTracks.length > 0 ? selectedTracks : undefined,
       });
       if ("error" in result && result.error) {
@@ -314,6 +316,23 @@ function CreateTeamForm({
             className="block w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-[#44ab48] focus:outline-none focus:ring-1 focus:ring-[#44ab48]"
           />
         </div>
+        <div>
+          <label
+            htmlFor="devpostUrl"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
+            DevPost URL <span className="text-red-500">*</span>
+          </label>
+          <input
+            id="devpostUrl"
+            type="url"
+            value={devpostUrl}
+            onChange={(e) => setDevpostUrl(e.target.value)}
+            placeholder="https://devpost.com/software/your-project"
+            className="block w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-[#44ab48] focus:outline-none focus:ring-1 focus:ring-[#44ab48]"
+            required
+          />
+        </div>
         <TrackSelector
           selectedTracks={selectedTracks}
           onToggle={toggleTrack}
@@ -322,7 +341,7 @@ function CreateTeamForm({
         />
         <button
           type="submit"
-          disabled={isSubmitting || !name.trim()}
+          disabled={isSubmitting || !name.trim() || !devpostUrl.trim()}
           className="w-full rounded-lg bg-[#44ab48] px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-[#3a9c3e] disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isSubmitting ? "Creating..." : "Create Team"}
@@ -417,6 +436,7 @@ function TeamView({
     id: string;
     name: string;
     projectName: string | null;
+    devpostUrl: string | null;
     captainRegistrationId: string;
     tracks: string[];
     members: {
@@ -573,7 +593,7 @@ function TeamInfoCard({
   onError,
   onSuccess,
 }: {
-  team: { id: string; name: string; projectName: string | null; tracks: string[] };
+  team: { id: string; name: string; projectName: string | null; devpostUrl: string | null; tracks: string[] };
   isCaptain: boolean;
   onUpdate: () => void;
   onError: (msg: string) => void;
@@ -582,6 +602,7 @@ function TeamInfoCard({
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(team.name);
   const [editProject, setEditProject] = useState(team.projectName ?? "");
+  const [editDevpost, setEditDevpost] = useState(team.devpostUrl ?? "");
   const [editTracks, setEditTracks] = useState<string[]>(team.tracks);
   const [eligibleTracks, setEligibleTracks] = useState<string[]>([]);
   const [isSaving, setIsSaving] = useState(false);
@@ -612,6 +633,7 @@ function TeamInfoCard({
         teamId: team.id,
         name: editName,
         projectName: editProject || null,
+        devpostUrl: editDevpost.trim(),
         tracks: editTracks,
       });
       if ("error" in result && result.error) {
@@ -655,6 +677,19 @@ function TeamInfoCard({
               className="block w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-[#44ab48] focus:outline-none focus:ring-1 focus:ring-[#44ab48]"
             />
           </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              DevPost URL <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="url"
+              value={editDevpost}
+              onChange={(e) => setEditDevpost(e.target.value)}
+              placeholder="https://devpost.com/software/your-project"
+              className="block w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-[#44ab48] focus:outline-none focus:ring-1 focus:ring-[#44ab48]"
+              required
+            />
+          </div>
           <TrackSelector
             selectedTracks={editTracks}
             onToggle={toggleTrack}
@@ -664,7 +699,7 @@ function TeamInfoCard({
           <div className="flex gap-2">
             <button
               onClick={handleSave}
-              disabled={isSaving || !editName.trim()}
+              disabled={isSaving || !editName.trim() || !editDevpost.trim()}
               className="rounded-lg bg-[#44ab48] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#3a9c3e] disabled:opacity-50"
             >
               {isSaving ? "Saving..." : "Save"}
@@ -674,6 +709,7 @@ function TeamInfoCard({
                 setIsEditing(false);
                 setEditName(team.name);
                 setEditProject(team.projectName ?? "");
+                setEditDevpost(team.devpostUrl ?? "");
                 setEditTracks(team.tracks);
               }}
               className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
@@ -689,6 +725,18 @@ function TeamInfoCard({
             {team.projectName && (
               <p className="mt-1 text-sm text-gray-500">
                 Project: {team.projectName}
+              </p>
+            )}
+            {team.devpostUrl && (
+              <p className="mt-1 text-sm">
+                <a
+                  href={team.devpostUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[#44ab48] hover:underline"
+                >
+                  DevPost Submission
+                </a>
               </p>
             )}
             {team.tracks.length > 0 && (

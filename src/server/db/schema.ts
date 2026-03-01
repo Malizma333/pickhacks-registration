@@ -398,6 +398,7 @@ export const team = pgTable("team", {
     .references(() => event.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
   projectName: text("project_name"),
+  devpostUrl: text("devpost_url"),
   captainRegistrationId: text("captain_registration_id")
     .notNull()
     .references(() => eventRegistration.id, { onDelete: "cascade" }),

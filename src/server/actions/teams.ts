@@ -253,6 +253,7 @@ export async function getTeamStatus() {
         id: t.id,
         name: t.name,
         projectName: t.projectName,
+        devpostUrl: t.devpostUrl,
         captainRegistrationId: t.captainRegistrationId,
         tracks: t.tracks.map((tr) => tr.track),
         members: t.members.map((m) => ({
@@ -317,10 +318,12 @@ export async function getTeamStatus() {
 export async function createTeam({
   name,
   projectName,
+  devpostUrl,
   tracks: requestedTracks,
 }: {
   name: string;
   projectName?: string;
+  devpostUrl: string;
   tracks?: string[];
 }) {
   try {
@@ -346,6 +349,10 @@ export async function createTeam({
       return { error: "Team name is required" };
     }
 
+    if (!devpostUrl.trim()) {
+      return { error: "DevPost URL is required" };
+    }
+
     const teamId = nanoid();
 
     await db.insert(team).values({
@@ -353,6 +360,7 @@ export async function createTeam({
       eventId: activeEvent.id,
       name: name.trim(),
       projectName: projectName?.trim() ?? null,
+      devpostUrl: devpostUrl.trim(),
       captainRegistrationId: registration.id,
     });
 
@@ -391,11 +399,13 @@ export async function updateTeam({
   teamId,
   name,
   projectName,
+  devpostUrl,
   tracks: requestedTracks,
 }: {
   teamId: string;
   name: string;
   projectName: string | null;
+  devpostUrl: string;
   tracks?: string[];
 }) {
   try {
@@ -422,11 +432,16 @@ export async function updateTeam({
       return { error: "Team name is required" };
     }
 
+    if (!devpostUrl.trim()) {
+      return { error: "DevPost URL is required" };
+    }
+
     await db
       .update(team)
       .set({
         name: name.trim(),
         projectName: projectName?.trim() ?? null,
+        devpostUrl: devpostUrl.trim(),
       })
       .where(eq(team.id, teamId));
 
