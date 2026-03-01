@@ -88,7 +88,7 @@ export default function AdminTeamsPage() {
     const csvHeaders = [
       "Team Name",
       "Project Name",
-      "DevPost URL",
+      "Devpost URL",
       "Captain",
       "Members",
       "Member Count",
@@ -186,7 +186,7 @@ export default function AdminTeamsPage() {
                   Project
                 </th>
                 <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
-                  DevPost
+                  Devpost
                 </th>
                 <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
                   Members

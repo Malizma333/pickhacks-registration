@@ -354,7 +354,7 @@ export async function createTeam({
     }
 
     if (!devpostUrl.trim()) {
-      return { error: "DevPost URL is required" };
+      return { error: "Devpost URL is required" };
     }
 
     const teamId = nanoid();
@@ -441,7 +441,7 @@ export async function updateTeam({
     }
 
     if (!devpostUrl.trim()) {
-      return { error: "DevPost URL is required" };
+      return { error: "Devpost URL is required" };
     }
 
     await db

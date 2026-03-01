@@ -321,7 +321,7 @@ function CreateTeamForm({
             htmlFor="devpostUrl"
             className="block text-sm font-medium text-gray-700 mb-1"
           >
-            DevPost URL <span className="text-red-500">*</span>
+            Devpost URL <span className="text-red-500">*</span>
           </label>
           <input
             id="devpostUrl"
@@ -680,7 +680,7 @@ function TeamInfoCard({
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              DevPost URL <span className="text-red-500">*</span>
+              Devpost URL <span className="text-red-500">*</span>
             </label>
             <input
               type="url"
@@ -736,7 +736,7 @@ function TeamInfoCard({
                   rel="noopener noreferrer"
                   className="text-[#44ab48] hover:underline"
                 >
-                  DevPost Submission
+                  Devpost Submission
                 </a>
               </p>
             )}
