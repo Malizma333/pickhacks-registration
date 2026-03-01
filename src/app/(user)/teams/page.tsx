@@ -259,7 +259,7 @@ function CreateTeamForm({
     try {
       const result = await createTeam({
         name: name.trim(),
-        projectName: projectName.trim() || undefined,
+        projectName: projectName.trim(),
         devpostUrl: devpostUrl.trim(),
         tracks: selectedTracks.length > 0 ? selectedTracks : undefined,
       });
@@ -304,8 +304,7 @@ function CreateTeamForm({
             htmlFor="projectName"
             className="block text-sm font-medium text-gray-700 mb-1"
           >
-            Project Name{" "}
-            <span className="text-gray-400 font-normal">(optional)</span>
+            Project Name <span className="text-red-500">*</span>
           </label>
           <input
             id="projectName"
@@ -314,6 +313,7 @@ function CreateTeamForm({
             onChange={(e) => setProjectName(e.target.value)}
             placeholder="Enter your project name"
             className="block w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-[#44ab48] focus:outline-none focus:ring-1 focus:ring-[#44ab48]"
+            required
           />
         </div>
         <div>
@@ -341,7 +341,7 @@ function CreateTeamForm({
         />
         <button
           type="submit"
-          disabled={isSubmitting || !name.trim() || !devpostUrl.trim()}
+          disabled={isSubmitting || !name.trim() || !projectName.trim() || !devpostUrl.trim()}
           className="w-full rounded-lg bg-[#44ab48] px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-[#3a9c3e] disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isSubmitting ? "Creating..." : "Create Team"}
@@ -632,7 +632,7 @@ function TeamInfoCard({
       const result = await updateTeam({
         teamId: team.id,
         name: editName,
-        projectName: editProject || null,
+        projectName: editProject.trim(),
         devpostUrl: editDevpost.trim(),
         tracks: editTracks,
       });
@@ -667,14 +667,15 @@ function TeamInfoCard({
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Project Name
+              Project Name <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               value={editProject}
               onChange={(e) => setEditProject(e.target.value)}
-              placeholder="Optional"
+              placeholder="Enter your project name"
               className="block w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-[#44ab48] focus:outline-none focus:ring-1 focus:ring-[#44ab48]"
+              required
             />
           </div>
           <div>
@@ -699,7 +700,7 @@ function TeamInfoCard({
           <div className="flex gap-2">
             <button
               onClick={handleSave}
-              disabled={isSaving || !editName.trim() || !editDevpost.trim()}
+              disabled={isSaving || !editName.trim() || !editProject.trim() || !editDevpost.trim()}
               className="rounded-lg bg-[#44ab48] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#3a9c3e] disabled:opacity-50"
             >
               {isSaving ? "Saving..." : "Save"}

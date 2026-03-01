@@ -29,6 +29,17 @@ interface RegistrationStats {
   completeRegistrations: number;
 }
 
+interface AccountEntry {
+  name: string;
+  email: string;
+  createdAt: Date | string;
+}
+
+interface RegistrationEntry {
+  name: string;
+  createdAt: Date | string;
+}
+
 function formatDate(date: Date | string): string {
   return new Date(date).toLocaleDateString("en-US", {
     timeZone: "UTC",
@@ -36,6 +47,16 @@ function formatDate(date: Date | string): string {
     year: "numeric",
     month: "short",
     day: "numeric",
+  });
+}
+
+function formatDateTime(date: Date | string): string {
+  return new Date(date).toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
   });
 }
 
@@ -62,6 +83,9 @@ export default function AdminPage() {
   const [activeEvent, setActiveEvent] = useState<EventData | null>(null);
   const [registrationStats, setRegistrationStats] =
     useState<RegistrationStats | null>(null);
+  const [accountsList, setAccountsList] = useState<AccountEntry[]>([]);
+  const [registrationsList, setRegistrationsList] = useState<RegistrationEntry[]>([]);
+  const [expandedStat, setExpandedStat] = useState<"accounts" | "registrations" | null>(null);
   const [isCreateFormVisible, setIsCreateFormVisible] = useState(false);
   const [canCreateNewEvent, setCanCreateNewEvent] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(true);
@@ -95,6 +119,8 @@ export default function AdminPage() {
       const statsResult = await fetchRegistrationStats();
       if (!("error" in statsResult) && statsResult.stats) {
         setRegistrationStats(statsResult.stats);
+        setAccountsList((statsResult.accounts as AccountEntry[]) ?? []);
+        setRegistrationsList((statsResult.registrations as RegistrationEntry[]) ?? []);
       }
     }
 
@@ -426,7 +452,11 @@ export default function AdminPage() {
                   Registration Statistics
                 </h3>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6">
-                  <div className={`rounded-xl bg-[${COLORS.primaryLight}] p-4 sm:p-6`}>
+                  <button
+                    type="button"
+                    onClick={() => setExpandedStat(expandedStat === "accounts" ? null : "accounts")}
+                    className={`rounded-xl bg-[${COLORS.primaryLight}] p-4 sm:p-6 text-left transition-shadow hover:shadow-md cursor-pointer ${expandedStat === "accounts" ? "ring-2 ring-[#44ab48]" : ""}`}
+                  >
                     <p className="text-sm font-medium text-[#2d7a32]">
                       Total Accounts
                     </p>
@@ -435,16 +465,69 @@ export default function AdminPage() {
                     >
                       {registrationStats.totalAccounts}
                     </p>
-                  </div>
-                  <div className="rounded-xl bg-blue-50 p-4 sm:p-6">
+                    <p className="mt-1 text-xs text-[#2d7a32]">
+                      {expandedStat === "accounts" ? "Click to collapse" : "Click to view"}
+                    </p>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setExpandedStat(expandedStat === "registrations" ? null : "registrations")}
+                    className={`rounded-xl bg-blue-50 p-4 sm:p-6 text-left transition-shadow hover:shadow-md cursor-pointer ${expandedStat === "registrations" ? "ring-2 ring-blue-500" : ""}`}
+                  >
                     <p className="text-sm font-medium text-blue-700">
                       Complete Registrations
                     </p>
                     <p className="mt-2 text-3xl sm:text-4xl font-bold text-blue-600">
                       {registrationStats.completeRegistrations}
                     </p>
-                  </div>
+                    <p className="mt-1 text-xs text-blue-600">
+                      {expandedStat === "registrations" ? "Click to collapse" : "Click to view"}
+                    </p>
+                  </button>
                 </div>
+
+                {expandedStat === "accounts" && (
+                  <div className="mt-4 rounded-xl border border-gray-200 bg-white shadow-sm">
+                    <div className="border-b border-gray-200 bg-gray-50 px-6 py-3">
+                      <h4 className="text-sm font-semibold text-gray-900">
+                        All Accounts ({accountsList.length})
+                      </h4>
+                    </div>
+                    <div className="max-h-80 overflow-y-auto divide-y divide-gray-100">
+                      {accountsList.map((account, i) => (
+                        <div key={i} className="flex items-center justify-between px-6 py-3">
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">{account.name}</p>
+                            <p className="text-xs text-gray-500">{account.email}</p>
+                          </div>
+                          <p className="text-xs text-gray-400">
+                            {formatDateTime(account.createdAt)}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {expandedStat === "registrations" && (
+                  <div className="mt-4 rounded-xl border border-gray-200 bg-white shadow-sm">
+                    <div className="border-b border-gray-200 bg-gray-50 px-6 py-3">
+                      <h4 className="text-sm font-semibold text-gray-900">
+                        Complete Registrations ({registrationsList.length})
+                      </h4>
+                    </div>
+                    <div className="max-h-80 overflow-y-auto divide-y divide-gray-100">
+                      {registrationsList.map((reg, i) => (
+                        <div key={i} className="flex items-center justify-between px-6 py-3">
+                          <p className="text-sm font-medium text-gray-900">{reg.name}</p>
+                          <p className="text-xs text-gray-400">
+                            {formatDateTime(reg.createdAt)}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 

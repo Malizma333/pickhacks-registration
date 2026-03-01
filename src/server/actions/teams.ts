@@ -322,7 +322,7 @@ export async function createTeam({
   tracks: requestedTracks,
 }: {
   name: string;
-  projectName?: string;
+  projectName: string;
   devpostUrl: string;
   tracks?: string[];
 }) {
@@ -349,6 +349,10 @@ export async function createTeam({
       return { error: "Team name is required" };
     }
 
+    if (!projectName.trim()) {
+      return { error: "Project name is required" };
+    }
+
     if (!devpostUrl.trim()) {
       return { error: "DevPost URL is required" };
     }
@@ -359,7 +363,7 @@ export async function createTeam({
       id: teamId,
       eventId: activeEvent.id,
       name: name.trim(),
-      projectName: projectName?.trim() ?? null,
+      projectName: projectName.trim(),
       devpostUrl: devpostUrl.trim(),
       captainRegistrationId: registration.id,
     });
@@ -404,7 +408,7 @@ export async function updateTeam({
 }: {
   teamId: string;
   name: string;
-  projectName: string | null;
+  projectName: string;
   devpostUrl: string;
   tracks?: string[];
 }) {
@@ -432,6 +436,10 @@ export async function updateTeam({
       return { error: "Team name is required" };
     }
 
+    if (!projectName.trim()) {
+      return { error: "Project name is required" };
+    }
+
     if (!devpostUrl.trim()) {
       return { error: "DevPost URL is required" };
     }
@@ -440,7 +448,7 @@ export async function updateTeam({
       .update(team)
       .set({
         name: name.trim(),
-        projectName: projectName?.trim() ?? null,
+        projectName: projectName.trim(),
         devpostUrl: devpostUrl.trim(),
       })
       .where(eq(team.id, teamId));

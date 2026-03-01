@@ -224,18 +224,39 @@ export async function fetchRegistrationStats(eventId?: string) {
     const [allUsers, registrations] = await Promise.all([
       db.query.user.findMany({
         where: eq(userTable.isAdmin, false),
+        with: {
+          hackerProfile: true,
+        },
       }),
       db.query.eventRegistration.findMany({
         where: eq(eventRegistration.eventId, targetEventId),
+        with: {
+          hackerProfile: true,
+        },
+        orderBy: [desc(eventRegistration.createdAt)],
       }),
     ]);
+
+    const completeRegistrations = registrations.filter((r) => r.isComplete);
 
     return {
       success: true,
       stats: {
         totalAccounts: allUsers.length,
-        completeRegistrations: registrations.filter((r) => r.isComplete).length,
+        completeRegistrations: completeRegistrations.length,
       },
+      accounts: allUsers
+        .filter((u) => u.hackerProfile)
+        .map((u) => ({
+          name: `${u.hackerProfile.firstName} ${u.hackerProfile.lastName}`,
+          email: u.email,
+          createdAt: u.createdAt,
+        }))
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()),
+      registrations: completeRegistrations.map((r) => ({
+        name: `${r.hackerProfile.firstName} ${r.hackerProfile.lastName}`,
+        createdAt: r.createdAt,
+      })),
     };
   } catch (error) {
     console.error("Get registration stats error:", error);
